@@ -4,10 +4,9 @@ using System.Text;
 
 namespace Notes.Definitions
 {
-    public enum Clef
+    public enum Modifiers
     {
-        G,
-        F,
-        C
+        Flat,
+        Sharp
     }
 }

@@ -4,12 +4,10 @@ using System.Text;
 
 namespace Notes.Definitions
 {
-    public enum Duration
+    public enum Clefs
     {
-        Whole,
-        Half,
-        Quarter,
-        Eight,
-        Sixteenth
+        G,
+        F,
+        C
     }
 }

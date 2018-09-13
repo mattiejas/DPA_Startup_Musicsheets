@@ -1,8 +1,6 @@
-﻿using PSAMControlLibrary;
-using System.Windows;
+﻿using System.Windows;
 using Notes.Definitions;
 using Notes.Models;
-using Duration = Notes.Definitions.Duration;
 
 namespace DPA_Musicsheets
 {
@@ -16,16 +14,20 @@ namespace DPA_Musicsheets
             InitializeComponent();
             
             // TODO: testing domain
-            var note = new Notes.Models.Note()
-                .SetNote(Notes.Definitions.Name.C, Octave.Four)
-                .SetDuration(Duration.Whole)
-                .AddModifier(Modifier.Flat)
-                .AddModifier(Modifier.Dotted)
-                .AddModifier(Modifier.Dotted);
+            var note = new Note()
+            {
+                Modifiers = Modifiers.Flat,
+                Name = Names.A,
+                Octave = Octaves.Eight,
+                Dots = 0,
+                Duration = Durations.Eight,
+            };
 
-            var rest = new Notes.Models.Rest()
-                .SetDuration(Duration.Half)
-                .AddModifier(Modifier.Dotted);
+            var rest = new Rest()
+            {
+                Duration = Durations.Quarter,
+                Dots = 1
+            };
         }
     }
 }

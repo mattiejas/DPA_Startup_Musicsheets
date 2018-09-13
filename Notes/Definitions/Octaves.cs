@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Notes.Definitions
 {
-    public enum Octave
+    public enum Octaves
     {
         MinusOne,
         Zero,

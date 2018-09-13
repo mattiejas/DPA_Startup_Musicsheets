@@ -4,10 +4,12 @@ using System.Text;
 
 namespace Notes.Definitions
 {
-    public enum Modifier
+    public enum Durations
     {
-        Flat,
-        Sharp,
-        Dotted
+        Whole,
+        Half,
+        Quarter,
+        Eight,
+        Sixteenth
     }
 }

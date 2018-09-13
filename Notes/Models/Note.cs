@@ -1,17 +1,12 @@
+using System.Collections.Generic;
 using Notes.Definitions;
 
 namespace Notes.Models
 {
     public class Note : Symbol
     {
-        private Name _name;
-        private Octave _octave;
-
-        public Symbol SetNote(Name name, Octave octave)
-        {
-            _name = name;
-            _octave = octave;
-            return this;
-        }
+        public Modifiers Modifiers { get; set; }
+        public Names Name { get; set; }
+        public Octaves Octave { get; set; }
     }
 }

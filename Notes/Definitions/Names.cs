@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Notes.Definitions
 {
-    public enum Name
+    public enum Names
     {
         A,
         B,
