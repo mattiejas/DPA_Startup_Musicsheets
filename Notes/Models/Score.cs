@@ -6,7 +6,7 @@ namespace Notes.Models
 {
     public class Score
     {
-        private List<SymbolGroup> SymbolGroups { get; set; }
+        public List<SymbolGroup> SymbolGroups { get; set; }
 
         public Score()
         {

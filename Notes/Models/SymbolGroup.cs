@@ -14,9 +14,10 @@ namespace Notes.Models
 
         public Repeat Repeat { get; set; }
 
-        public SymbolGroup()
+        public SymbolGroup(Clefs clef = Clefs.C)
         {
             Symbols = new List<Symbol>();
+            Clef = clef;
         }
     }
 }

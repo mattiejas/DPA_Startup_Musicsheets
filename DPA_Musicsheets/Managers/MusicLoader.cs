@@ -56,6 +56,10 @@ namespace DPA_Musicsheets.Managers
                 MidiPlayerViewModel.MidiSequence = MidiSequence;
                 this.LilypondText = LoadMidiIntoLilypond(MidiSequence);
                 this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
+                
+                // TODO: Load Midi into domain classes
+                var test = LoadMidi.Load(MidiSequence);
+//                this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
             }
             else if (Path.GetExtension(fileName).EndsWith(".ly"))
             {
@@ -204,7 +208,6 @@ namespace DPA_Musicsheets.Managers
 
             return lilypondContent.ToString();
         }
-
         #endregion Midiloading (loads midi to lilypond)
 
         #region Staffs loading (loads lilypond to WPF staffs)

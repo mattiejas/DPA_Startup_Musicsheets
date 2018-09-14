@@ -6,8 +6,8 @@ namespace Notes.Definitions
 {
     public enum Clefs
     {
+        C,
         G,
-        F,
-        C
+        F
     }
 }
