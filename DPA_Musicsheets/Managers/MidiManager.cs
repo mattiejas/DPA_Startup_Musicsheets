@@ -8,14 +8,17 @@ using Sanford.Multimedia.Midi;
 
 namespace DPA_Musicsheets.Managers
 {
-    public static class LoadMidi
+    public static class MidiManager
     {
         public static Score Load(Sequence sequence)
         {
             SymbolGroup symbolGroup = GetMetadataFromTrack(sequence[0]);
-            symbolGroup.Clef = Clefs.C;
             symbolGroup.Symbols = GetSymbolsFromTrack(sequence[1], sequence.Division, symbolGroup.Meter);
-            return new Score() { SymbolGroups = { symbolGroup } };
+
+            return new Score {
+                SymbolGroups = { symbolGroup },
+                Clef = Clefs.Treble
+            };
         }
 
         private static List<Symbol> GetSymbolsFromTrack(Track track, int division, TimeSignature timeSignature)
@@ -47,24 +50,25 @@ namespace DPA_Musicsheets.Managers
                         // Finish the previous note with the length.
                         double percentageOfBar;
 
-                        SetDuration(symbols[symbols.Count - 1],  
+                        SetDuration(symbols[symbols.Count - 1],
                             timeSignature, previousNoteAbsoluteTicks, midiEvent.AbsoluteTicks, division, out percentageOfBar);
 
                         previousNoteAbsoluteTicks = midiEvent.AbsoluteTicks;
-                    
+
                         percentageOfBarReached += percentageOfBar;
                         if (percentageOfBarReached >= 1)
                         {
                             percentageOfBarReached -= 1;
                         }
-                    
+
                         startedNoteIsClosed = true;
                     }
                     else
                     {
                         symbols.Add(new Rest { Duration = Durations.Quarter });
                     }
-                } else if (channelMessage?.Command == ChannelCommand.NoteOff)
+                }
+                else if (channelMessage?.Command == ChannelCommand.NoteOff)
                 {
                     // Finish the previous note with the length.
                     double percentageOfBar;
@@ -112,24 +116,24 @@ namespace DPA_Musicsheets.Managers
                                     (tempoBytes[2] & 0xff);
                         symbolGroup.Tempo = 60000000 / tempo; // bpm
                         break;
-//                        case MetaType.EndOfTrack:
-//                            if (previousNoteAbsoluteTicks > 0)
-//                            {
-//                                // Finish the last notelength.
-//                                double percentageOfBar;
-//                                lilypondContent.Append(MidiToLilyHelper.GetLilypondNoteLength(
-//                                    previousNoteAbsoluteTicks, midiEvent.AbsoluteTicks, division, _beatNote,
-//                                    _beatsPerBar, out percentageOfBar));
-//                                lilypondContent.Append(" ");
-//                        
-//                                percentageOfBarReached += percentageOfBar;
-//                                if (percentageOfBarReached >= 1)
-//                                {
-//                                    lilypondContent.AppendLine("|");
-//                                    percentageOfBar = percentageOfBar - 1;
-//                                }
-//                            }
-//                            break;
+                        //                        case MetaType.EndOfTrack:
+                        //                            if (previousNoteAbsoluteTicks > 0)
+                        //                            {
+                        //                                // Finish the last notelength.
+                        //                                double percentageOfBar;
+                        //                                lilypondContent.Append(MidiToLilyHelper.GetLilypondNoteLength(
+                        //                                    previousNoteAbsoluteTicks, midiEvent.AbsoluteTicks, division, _beatNote,
+                        //                                    _beatsPerBar, out percentageOfBar));
+                        //                                lilypondContent.Append(" ");
+                        //                        
+                        //                                percentageOfBarReached += percentageOfBar;
+                        //                                if (percentageOfBarReached >= 1)
+                        //                                {
+                        //                                    lilypondContent.AppendLine("|");
+                        //                                    percentageOfBar = percentageOfBar - 1;
+                        //                                }
+                        //                            }
+                        //                            break;
                 }
             }
 
@@ -139,7 +143,7 @@ namespace DPA_Musicsheets.Managers
         private static Note GetNoteFromMidiKey(int midiKey)
         {
             Names name;
-            var octave = (Octaves) (midiKey / 12 - 1);
+            var octave = (Octaves)(midiKey / 12 - 1);
             Modifiers? modifier = null;
 
             switch (midiKey % 12)
@@ -251,7 +255,7 @@ namespace DPA_Musicsheets.Managers
 
                     while (currentTime < (noteLength - subtractDuration))
                     {
-                        var addtime = 1 / ((subtractDuration / (int) timeSignature.Beat) * Math.Pow(2, dots));
+                        var addtime = 1 / ((subtractDuration / (int)timeSignature.Beat) * Math.Pow(2, dots));
                         if (addtime <= 0) break;
                         currentTime += addtime;
                         if (currentTime <= (noteLength - subtractDuration))
@@ -265,7 +269,7 @@ namespace DPA_Musicsheets.Managers
                 }
             }
 
-            symbol.Duration = (Durations) duration;
+            symbol.Duration = (Durations)duration;
             symbol.Dots = dots;
             return symbol;
         }

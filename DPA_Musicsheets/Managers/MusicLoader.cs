@@ -54,12 +54,13 @@ namespace DPA_Musicsheets.Managers
                 MidiSequence.Load(fileName);
 
                 MidiPlayerViewModel.MidiSequence = MidiSequence;
-                this.LilypondText = LoadMidiIntoLilypond(MidiSequence);
-                this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
+//                this.LilypondText = LoadMidiIntoLilypond(MidiSequence);
+//                this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
                 
                 // TODO: Load Midi into domain classes
-                var test = LoadMidi.Load(MidiSequence);
-//                this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
+                var score = MidiManager.Load(MidiSequence);
+                var view = ViewManager.Load(score);
+                this.StaffsViewModel.SetStaffs(view);
             }
             else if (Path.GetExtension(fileName).EndsWith(".ly"))
             {
@@ -77,7 +78,7 @@ namespace DPA_Musicsheets.Managers
                 throw new NotSupportedException($"File extension {Path.GetExtension(fileName)} is not supported.");
             }
 
-            LoadLilypondIntoWpfStaffsAndMidi(LilypondText);
+//            LoadLilypondIntoWpfStaffsAndMidi(LilypondText);
         }
 
         /// <summary>
