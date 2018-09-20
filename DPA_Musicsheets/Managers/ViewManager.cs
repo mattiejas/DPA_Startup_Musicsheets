@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Animation;
 using Notes.Definitions;
 using Notes.Models;
 using PSAMControlLibrary;
@@ -44,8 +45,29 @@ namespace DPA_Musicsheets.Managers
 
                 foreach (var symbol in symbolGroup.Symbols)
                 {
-                    var note = symbol as Note;
-                    viewSymbols.Add(new PSAMNote("G", 3, 4, MusicalSymbolDuration.Quarter, NoteStemDirection.Up, NoteTieType.Start, new List<NoteBeamType>()));
+                    if (symbol is Note note)
+                    {
+                        int modifier = 0;
+                        if (note.Modifier == Modifiers.Flat)
+                        {
+                            modifier = -1;
+                        }
+                        else if (note.Modifier == Modifiers.Sharp)
+                        {
+                            modifier = 1;
+                        }
+
+                        var direction = NoteStemDirection.Up;
+                        if (note.Octave >= Octaves.Five || (note.Name == Names.B && note.Octave == Octaves.Four))
+                        {
+                            direction = NoteStemDirection.Down;
+                        }
+
+                        var newestNote = new PSAMNote(note.Name.ToString(), modifier, (int) note.Octave,
+                            (MusicalSymbolDuration) note.Duration, direction, NoteTieType.None,
+                            new List<NoteBeamType> {NoteBeamType.Single});
+                        viewSymbols.Add(newestNote);
+                    }
                 }
             }
 
