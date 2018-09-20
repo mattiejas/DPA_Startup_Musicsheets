@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Animation;
+using DPA_Musicsheets.Exceptions;
 using Notes.Definitions;
 using Notes.Models;
 using PSAMControlLibrary;
@@ -18,22 +19,11 @@ namespace DPA_Musicsheets.Managers
     {
         public static IList<MusicalSymbol> Load(Score score)
         {
-            List<MusicalSymbol> viewSymbols = new List<MusicalSymbol>();
-            switch (score.Clef)
-            {
-                case Clefs.Alto:
-                    viewSymbols.Add(new Clef(ClefType.CClef, (int)score.Clef));
-                    break;
-                case Clefs.Bass:
-                    viewSymbols.Add(new Clef(ClefType.FClef, (int)score.Clef));
-                    break;
-                case Clefs.Treble:
-                    viewSymbols.Add(new Clef(ClefType.GClef, (int)score.Clef));
-                    break;
-            }
+            var viewSymbols = new List<MusicalSymbol>();
+            var clef = CreateClefSymbol(score.Clef);
+            viewSymbols.Add(clef);
 
             TimeSignature lastMeter = new TimeSignature { Beat = Durations.Quarter, Ticks = 4 }; // set default to bypass null checks
-
             foreach (var symbolGroup in score.SymbolGroups)
             {
                 if (lastMeter != symbolGroup.Meter) // only add meter when it is different from the previous one
@@ -65,12 +55,13 @@ namespace DPA_Musicsheets.Managers
                             direction = NoteStemDirection.Down;
                         }
 
-                        var newestNote = new PSAMNote(note.Name.ToString(), modifier, (int) note.Octave,
-                            (MusicalSymbolDuration) note.Duration, direction, NoteTieType.None,
-                            new List<NoteBeamType> {NoteBeamType.Single});
+                        var newestNote = new PSAMNote(note.Name.ToString(), modifier, (int)note.Octave,
+                            (MusicalSymbolDuration)note.Duration, direction, NoteTieType.None,
+                            new List<NoteBeamType> { NoteBeamType.Single });
+
                         viewSymbols.Add(newestNote);
 
-                        progress -= (double) lastMeter.Beat / (double) note.Duration; // subtract duration from progress
+                        progress -= (double)lastMeter.Beat / (double)note.Duration; // subtract duration from progress
                         if (progress <= 0) // draw barline when progress = 0
                         {
                             viewSymbols.Add(new Barline());
@@ -81,6 +72,24 @@ namespace DPA_Musicsheets.Managers
             }
 
             return viewSymbols;
+        }
+
+        /*
+         * Create clef symbol based on our domain model
+         */
+        private static Clef CreateClefSymbol(Clefs clef)
+        {
+            switch (clef)
+            {
+                case Clefs.Alto:
+                    return new Clef(ClefType.CClef, (int)clef);
+                case Clefs.Bass:
+                    return new Clef(ClefType.FClef, (int)clef);
+                case Clefs.Treble:
+                    return new Clef(ClefType.GClef, (int)clef);
+                default:
+                    throw new ClefNotFoundException();
+            }
         }
     }
 }
