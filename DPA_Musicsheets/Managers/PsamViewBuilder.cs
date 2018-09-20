@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DPA_Musicsheets.Exceptions;
 using Notes.Definitions;
 using Notes.Models;
 using PSAMControlLibrary;
@@ -230,6 +231,8 @@ namespace DPA_Musicsheets.Managers
                 case Clefs.Treble:
                     _symbols.Add(new Clef(ClefType.GClef, (int)clef));
                     break;
+                default:
+                    throw new ClefNotFoundException();
             }
         }
 
