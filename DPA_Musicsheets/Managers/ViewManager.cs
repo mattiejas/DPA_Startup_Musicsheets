@@ -32,7 +32,7 @@ namespace DPA_Musicsheets.Managers
                     break;
             }
 
-            TimeSignature lastMeter = null;
+            TimeSignature lastMeter = new TimeSignature { Beat = Durations.Quarter, Ticks = 4 }; // set default to bypass null checks
 
             foreach (var symbolGroup in score.SymbolGroups)
             {
@@ -42,6 +42,8 @@ namespace DPA_Musicsheets.Managers
                         (uint)symbolGroup.Meter.Beat));
                     lastMeter = symbolGroup.Meter;
                 }
+
+                double progress = lastMeter.Ticks; // set progress to ticks, e.g. 4
 
                 foreach (var symbol in symbolGroup.Symbols)
                 {
@@ -67,6 +69,13 @@ namespace DPA_Musicsheets.Managers
                             (MusicalSymbolDuration) note.Duration, direction, NoteTieType.None,
                             new List<NoteBeamType> {NoteBeamType.Single});
                         viewSymbols.Add(newestNote);
+
+                        progress -= (double) lastMeter.Beat / (double) note.Duration; // subtract duration from progress
+                        if (progress <= 0) // draw barline when progress = 0
+                        {
+                            viewSymbols.Add(new Barline());
+                            progress = lastMeter.Ticks;
+                        }
                     }
                 }
             }
