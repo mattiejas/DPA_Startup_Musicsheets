@@ -2,7 +2,6 @@
 using DPA_Musicsheets.Models;
 using DPA_Musicsheets.ViewModels;
 using PSAMControlLibrary;
-using PSAMWPFControlLibrary;
 using Sanford.Multimedia.Midi;
 using System;
 using System.Collections.Generic;
@@ -11,7 +10,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using Common.Interfaces;
+using Note = PSAMControlLibrary.Note;
+using Rest = PSAMControlLibrary.Rest;
+using TimeSignature = PSAMControlLibrary.TimeSignature;
 
 namespace DPA_Musicsheets.Managers
 {
@@ -34,10 +36,15 @@ namespace DPA_Musicsheets.Managers
         private int _bpm = 120;       // Aantal beatnotes per minute.
         private int _beatsPerBar;     // Aantal beatnotes per maat.
 
-        public MainViewModel MainViewModel { get; set; }
         public LilypondViewModel LilypondViewModel { get; set; }
         public MidiPlayerViewModel MidiPlayerViewModel { get; set; }
-        public StaffsViewModel StaffsViewModel { get; set; }
+
+        private IList<IViewManager> _viewManagers;
+
+        public MusicLoader(IList<IViewManager> viewManagers)
+        {
+            _viewManagers = viewManagers;
+        }
 
         /// <summary>
         /// Opens a file.
@@ -53,14 +60,19 @@ namespace DPA_Musicsheets.Managers
                 MidiSequence = new Sequence();
                 MidiSequence.Load(fileName);
 
-                MidiPlayerViewModel.MidiSequence = MidiSequence;
-//                this.LilypondText = LoadMidiIntoLilypond(MidiSequence);
-//                this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
-                
-                // TODO: Load Midi into domain classes
+//                MidiPlayerViewModel.MidiSequence = MidiSequence;
+
+                // TODO: load lilypond text 
+                //                this.LilypondText = LoadMidiIntoLilypond(MidiSequence);
+                //                this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
+
                 var score = MidiManager.Load(MidiSequence);
-                var view = ViewManager.Load(score);
-                this.StaffsViewModel.SetStaffs(view);
+                foreach (var viewManager in _viewManagers)
+                {
+                    viewManager.Load(score);
+                }
+//                _viewManager.Load(score);
+//                _viewManager.Load(score);
             }
             else if (Path.GetExtension(fileName).EndsWith(".ly"))
             {
@@ -69,7 +81,7 @@ namespace DPA_Musicsheets.Managers
                 {
                     sb.AppendLine(line);
                 }
-                
+
                 this.LilypondText = sb.ToString();
                 this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
             }
@@ -78,7 +90,7 @@ namespace DPA_Musicsheets.Managers
                 throw new NotSupportedException($"File extension {Path.GetExtension(fileName)} is not supported.");
             }
 
-//            LoadLilypondIntoWpfStaffsAndMidi(LilypondText);
+            //            LoadLilypondIntoWpfStaffsAndMidi(LilypondText);
         }
 
         /// <summary>
@@ -95,7 +107,7 @@ namespace DPA_Musicsheets.Managers
             WPFStaffs.Clear();
 
             WPFStaffs.AddRange(GetStaffsFromTokens(tokens));
-            this.StaffsViewModel.SetStaffs(this.WPFStaffs);
+//            this.StaffsViewModel.SetStaffs(this.WPFStaffs);
 
             MidiSequence = GetSequenceFromWPFStaffs();
             MidiPlayerViewModel.MidiSequence = MidiSequence;
@@ -171,11 +183,11 @@ namespace DPA_Musicsheets.Managers
                             var channelMessage = midiEvent.MidiMessage as ChannelMessage;
                             if (channelMessage.Command == ChannelCommand.NoteOn)
                             {
-                                if(channelMessage.Data2 > 0) // Data2 = loudness
+                                if (channelMessage.Data2 > 0) // Data2 = loudness
                                 {
                                     // Append the new note.
                                     lilypondContent.Append(MidiToLilyHelper.GetLilyNoteName(previousMidiKey, channelMessage.Data1));
-                                    
+
                                     previousMidiKey = channelMessage.Data1;
                                     startedNoteIsClosed = false;
                                 }
@@ -312,7 +324,7 @@ namespace DPA_Musicsheets.Managers
 
                         var note = new Note(currentToken.Value[0].ToString().ToUpper(), alter, previousOctave, (MusicalSymbolDuration)noteLength, NoteStemDirection.Up, tie, new List<NoteBeamType>() { NoteBeamType.Single });
                         note.NumberOfDots += currentToken.Value.Count(c => c.Equals('.'));
-                        
+
                         symbols.Add(note);
                         break;
                     case LilypondTokenKind.Rest:
@@ -349,7 +361,7 @@ namespace DPA_Musicsheets.Managers
 
             return symbols;
         }
-        
+
         private static LinkedList<LilypondToken> GetTokensFromLilypond(string content)
         {
             var tokens = new LinkedList<LilypondToken>();
@@ -404,7 +416,7 @@ namespace DPA_Musicsheets.Managers
 
             sequence.Save(fileName);
         }
-        
+
         /// <summary>
         /// We create MIDI from WPF staffs, 2 different dependencies, not a good practice.
         /// TODO: Create MIDI from our own domain classes.
@@ -497,9 +509,10 @@ namespace DPA_Musicsheets.Managers
             };
 
             process.Start();
-            while (!process.HasExited) { /* Wait for exit */
-                }
-                if (sourceFolder != targetFolder || sourceFileName != targetFileName)
+            while (!process.HasExited)
+            { /* Wait for exit */
+            }
+            if (sourceFolder != targetFolder || sourceFileName != targetFileName)
             {
                 File.Move(sourceFolder + "\\" + sourceFileName + ".pdf", targetFolder + "\\" + targetFileName + ".pdf");
                 File.Delete(tmpFileName);

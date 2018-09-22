@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using Notes.Definitions;
-using Notes.Models;
+using Common.Definitions;
+using Common.Models;
 using Sanford.Multimedia.Midi;
 
 namespace DPA_Musicsheets.Managers

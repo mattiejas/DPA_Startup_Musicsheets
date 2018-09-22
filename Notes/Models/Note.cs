@@ -1,7 +1,6 @@
-using System.Collections.Generic;
-using Notes.Definitions;
+using Common.Definitions;
 
-namespace Notes.Models
+namespace Common.Models
 {
     public class Note : Symbol
     {

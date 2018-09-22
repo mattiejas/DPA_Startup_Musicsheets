@@ -1,6 +1,4 @@
 ﻿using System.Windows;
-using Notes.Definitions;
-using Notes.Models;
 
 namespace DPA_Musicsheets
 {

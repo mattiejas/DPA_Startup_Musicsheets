@@ -5,19 +5,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DPA_Musicsheets.Exceptions;
-using Notes.Definitions;
-using Notes.Models;
+using Common.Definitions;
+using Common.Interfaces;
+using Common.Models;
 using PSAMControlLibrary;
 using PSAMTimeSignature = PSAMControlLibrary.TimeSignature;
 using PSAMNote = PSAMControlLibrary.Note;
-using Note = Notes.Models.Note;
+using Note = Common.Models.Note;
+using Rest = Common.Models.Rest;
+using Clefs = Common.Definitions.Clefs;
 using PSAMRest = PSAMControlLibrary.Rest;
-using TimeSignature = Notes.Models.TimeSignature;
+using TimeSignature = Common.Models.TimeSignature;
 
 
-namespace DPA_Musicsheets.Managers
+namespace DPA_Musicsheets.Builders
 {
-    public class PsamViewBuilder
+    public class PsamViewBuilder : IViewBuilder<MusicalSymbol>
     {
         internal class NoteBeams
         {
@@ -41,6 +44,13 @@ namespace DPA_Musicsheets.Managers
             _notes = new List<MusicalSymbol>();
             _symbols = new List<MusicalSymbol>();
             _buffer = new List<NoteBeams>();
+        }
+
+        public void Reset()
+        {
+            _notes.Clear();
+            _symbols.Clear();
+            _buffer.Clear();
         }
 
         public void AddNote(Note note)
@@ -191,7 +201,7 @@ namespace DPA_Musicsheets.Managers
             _buffer.Clear();
         }
 
-        private NoteStemDirection GetStemDirection(Notes.Models.Note note)
+        private NoteStemDirection GetStemDirection(Note note)
         {
             var direction = NoteStemDirection.Up;
             if (note.Octave >= Octaves.Five || (note.Name == Names.B && note.Octave == Octaves.Four))
@@ -217,13 +227,13 @@ namespace DPA_Musicsheets.Managers
             }
         }
 
-        public void AddRest(Notes.Models.Rest rest)
+        public void AddRest(Rest rest)
         {
             var psamRest = new PSAMRest((MusicalSymbolDuration)rest.Duration);
             _notes.Add(psamRest);
         }
 
-        public void AddClef(Notes.Definitions.Clefs clef)
+        public void AddClef(Clefs clef)
         {
             if (_buffer.Count > 0) FlushBuffer();
             if (_notes.Count > 0) Build();

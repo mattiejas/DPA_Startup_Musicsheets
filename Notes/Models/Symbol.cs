@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Notes.Definitions;
+﻿using Common.Definitions;
 
-namespace Notes.Models
+namespace Common.Models
 {
     public abstract class Symbol
     {

@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Notes.Definitions;
+﻿using System.Collections.Generic;
+using Common.Definitions;
 
-namespace Notes.Models
+namespace Common.Models
 {
     public class Score
     {
