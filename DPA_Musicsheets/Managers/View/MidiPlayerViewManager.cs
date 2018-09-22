@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Common.Exceptions;
 using Common.Interfaces;
 using Common.Models;
 using DPA_Musicsheets.ViewModels;
@@ -24,7 +25,7 @@ namespace DPA_Musicsheets.Managers.View
 
         public void Load(Score score)
         {
-            // throw new NotImplementedException();
+            if (_viewModel == null) throw new ViewModelNotFoundException();
 
             // TODO: convert score to midi sequence, set _viewModel.MidiSequence
         }

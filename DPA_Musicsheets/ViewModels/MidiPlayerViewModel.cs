@@ -37,7 +37,6 @@ namespace DPA_Musicsheets.ViewModels
         public MidiPlayerViewModel(IViewManagerPool pool)
         {
             var viewManager = pool.GetInstance<MidiPlayerViewManager>();
-//            _viewManager = (MidiPlayerViewManager)viewManagers.First(viewManager => viewManager is MidiPlayerViewManager);
             viewManager.RegisterViewModel(this);
 
             // The OutputDevice is a midi device on the midi channel of your computer.
@@ -56,7 +55,7 @@ namespace DPA_Musicsheets.ViewModels
             };
 
             // TODO: Can we use some sort of eventing system so the managers layer doesn't have to know the viewmodel layer?
-//            musicLoader.MidiPlayerViewModel = this;
+            //            musicLoader.MidiPlayerViewModel = this;
         }
 
         private void UpdateButtons()

@@ -17,17 +17,7 @@ namespace DPA_Musicsheets.ViewModels
         {
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
 
-            //            SimpleIoc.Default.Register<IList<IViewManager>>(() => new List<IViewManager>
-            //            {
-            //                new PsamViewManager(),
-            //                new MidiPlayerViewManager()
-            //            });
-
-            //            SimpleIoc.Default.Register<IViewManager, PsamViewManager>();
-            //            SimpleIoc.Default.Register<IViewManager, MidiPlayerViewManager>();
-
             SimpleIoc.Default.Register<IViewManagerPool, ViewManagerPool>();
-
             SimpleIoc.Default.Register<MusicLoader>();
 
             SimpleIoc.Default.Register<MainViewModel>();

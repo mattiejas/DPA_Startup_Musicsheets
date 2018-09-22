@@ -24,13 +24,10 @@ namespace DPA_Musicsheets.Managers
     /// </summary>
     public class MusicLoader
     {
-        #region Properties
         public string LilypondText { get; set; }
         public List<MusicalSymbol> WPFStaffs { get; set; } = new List<MusicalSymbol>();
         private static List<Char> notesorder = new List<Char> { 'c', 'd', 'e', 'f', 'g', 'a', 'b' };
-
         public Sequence MidiSequence { get; set; }
-        #endregion Properties
 
         private int _beatNote = 4;    // De waarde van een beatnote.
         private int _bpm = 120;       // Aantal beatnotes per minute.
@@ -60,7 +57,7 @@ namespace DPA_Musicsheets.Managers
                 MidiSequence = new Sequence();
                 MidiSequence.Load(fileName);
 
-//                MidiPlayerViewModel.MidiSequence = MidiSequence;
+                //                MidiPlayerViewModel.MidiSequence = MidiSequence;
 
                 // TODO: load lilypond text 
                 //                this.LilypondText = LoadMidiIntoLilypond(MidiSequence);
@@ -105,7 +102,7 @@ namespace DPA_Musicsheets.Managers
             WPFStaffs.Clear();
 
             WPFStaffs.AddRange(GetStaffsFromTokens(tokens));
-//            this.StaffsViewModel.SetStaffs(this.WPFStaffs);
+            //            this.StaffsViewModel.SetStaffs(this.WPFStaffs);
 
             MidiSequence = GetSequenceFromWPFStaffs();
             MidiPlayerViewModel.MidiSequence = MidiSequence;

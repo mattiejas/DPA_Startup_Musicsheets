@@ -32,8 +32,6 @@ namespace DPA_Musicsheets.ViewModels
         public StaffsViewModel(IViewManagerPool pool)
         {
             _viewManager = pool.GetInstance<PsamViewManager>();
-
-//            _viewManager = (PsamViewManager) viewManagers.First(viewManager => viewManager is PsamViewManager);
             _viewManager.RegisterViewModel(this);
 
             Staffs = new ObservableCollection<MusicalSymbol>();
