@@ -54,10 +54,11 @@ namespace DPA_Musicsheets.Managers
         {
             if (Path.GetExtension(fileName).EndsWith(".mid"))
             {
+                // TODO: Nadenken over de flow, want PSAMViewManager heeft een score nodig (dat wordt gegenereerd door een Sequence en MidiPlayer gebruikt juist de score om het om te zetten naar Midi (kortom twee keer hetzelfde gebeurd terwijl de sequence al hebben
                 MidiSequence = new Sequence();
                 MidiSequence.Load(fileName);
 
-                //                MidiPlayerViewModel.MidiSequence = MidiSequence;
+                // MidiPlayerViewModel.MidiSequence = MidiSequence;
 
                 // TODO: load lilypond text 
                 //                this.LilypondText = LoadMidiIntoLilypond(MidiSequence);
