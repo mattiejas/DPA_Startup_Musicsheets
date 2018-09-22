@@ -11,6 +11,7 @@ using PSAMControlLibrary;
 using PSAMTimeSignature = PSAMControlLibrary.TimeSignature;
 using PSAMNote = PSAMControlLibrary.Note;
 using Note = Notes.Models.Note;
+using PSAMRest = PSAMControlLibrary.Rest;
 using TimeSignature = Notes.Models.TimeSignature;
 
 
@@ -29,7 +30,7 @@ namespace DPA_Musicsheets.Managers
             }
         }
 
-        private List<PSAMNote> _notes;
+        private List<MusicalSymbol> _notes;
         private List<MusicalSymbol> _symbols;
         private List<NoteBeams> _buffer;
 
@@ -37,7 +38,7 @@ namespace DPA_Musicsheets.Managers
 
         public PsamViewBuilder()
         {
-            _notes = new List<PSAMNote>();
+            _notes = new List<MusicalSymbol>();
             _symbols = new List<MusicalSymbol>();
             _buffer = new List<NoteBeams>();
         }
@@ -218,7 +219,8 @@ namespace DPA_Musicsheets.Managers
 
         public void AddRest(Notes.Models.Rest rest)
         {
-
+            var psamRest = new PSAMRest((MusicalSymbolDuration)rest.Duration);
+            _notes.Add(psamRest);
         }
 
         public void AddClef(Notes.Definitions.Clefs clef)
@@ -275,12 +277,23 @@ namespace DPA_Musicsheets.Managers
         {
             double progress = _meter.Ticks; // set progress to ticks, e.g. 4
 
-            foreach (var note in _notes)
+            foreach (var symbol in _notes)
             {
-                var duration = GetProgressDuration((double)_meter.Beat / (double)note.Duration, note.NumberOfDots);
-                progress -= duration; // subtract duration from progress
+                if (symbol is PSAMNote note)
+                {
+                    var duration = GetProgressDuration((double) _meter.Beat / (double) note.Duration,
+                        note.NumberOfDots);
+                    progress -= duration; // subtract duration from progress                    
+                }
 
-                _symbols.Add(note);
+                if (symbol is PSAMRest rest)
+                {
+                    var duration = GetProgressDuration((double)_meter.Beat / (double)rest.Duration,
+                        rest.NumberOfDots);
+                    progress -= duration; // subtract duration from progress    
+                }
+
+                _symbols.Add(symbol);
 
                 if (progress <= 0) // draw barline when progress = 0
                 {
@@ -289,7 +302,7 @@ namespace DPA_Musicsheets.Managers
                 }
             }
 
-            _notes = new List<PSAMNote>();
+            _notes = new List<MusicalSymbol>();
             return _symbols;
         }
     }

@@ -10,6 +10,7 @@ using PSAMControlLibrary;
 using Note = Notes.Models.Note;
 using PSAMTimeSignature = PSAMControlLibrary.TimeSignature;
 using PSAMNote = PSAMControlLibrary.Note;
+using Rest = Notes.Models.Rest;
 using TimeSignature = Notes.Models.TimeSignature;
 
 namespace DPA_Musicsheets.Managers
@@ -31,6 +32,11 @@ namespace DPA_Musicsheets.Managers
                     if (symbol is Note note)
                     {
                         builder.AddNote(note);
+                    }
+
+                    if (symbol is Rest rest)
+                    {
+                        builder.AddRest(rest);
                     }
                 }
             }

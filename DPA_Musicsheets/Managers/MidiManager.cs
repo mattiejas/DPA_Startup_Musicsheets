@@ -41,6 +41,17 @@ namespace DPA_Musicsheets.Managers
                 {
                     if (channelMessage.Data2 > 0) // Data2 = loudness
                     {
+                        // check if there is time between the last note event and this one
+                        var delta = midiEvent.AbsoluteTicks - previousNoteAbsoluteTicks;
+                        if (delta > 0)
+                        {
+                            var rest = new Rest();
+                            SetDuration(rest, timeSignature, previousNoteAbsoluteTicks, midiEvent.AbsoluteTicks,
+                                division, out percentageOfBarReached);
+                            symbols.Add(rest);
+                            previousNoteAbsoluteTicks = midiEvent.AbsoluteTicks;
+                        }
+
                         // Append the new note.
                         symbols.Add(GetNoteFromMidiKey(channelMessage.Data1));
                         startedNoteIsClosed = false;
