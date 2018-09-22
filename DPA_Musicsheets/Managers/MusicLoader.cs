@@ -39,11 +39,11 @@ namespace DPA_Musicsheets.Managers
         public LilypondViewModel LilypondViewModel { get; set; }
         public MidiPlayerViewModel MidiPlayerViewModel { get; set; }
 
-        private IList<IViewManager> _viewManagers;
+        private readonly IViewManagerPool _pool;
 
-        public MusicLoader(IList<IViewManager> viewManagers)
+        public MusicLoader(IViewManagerPool pool)
         {
-            _viewManagers = viewManagers;
+            _pool = pool;
         }
 
         /// <summary>
@@ -67,12 +67,10 @@ namespace DPA_Musicsheets.Managers
                 //                this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
 
                 var score = MidiManager.Load(MidiSequence);
-                foreach (var viewManager in _viewManagers)
+                foreach (var viewManager in _pool)
                 {
                     viewManager.Load(score);
                 }
-//                _viewManager.Load(score);
-//                _viewManager.Load(score);
             }
             else if (Path.GetExtension(fileName).EndsWith(".ly"))
             {

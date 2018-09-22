@@ -47,7 +47,7 @@ namespace DPA_Musicsheets.Managers.View
                 }
             }
 
-            _viewModel.SetStaffs(_builder.Build());
+            _viewModel?.SetStaffs(_builder.Build());
         }
     }
 }

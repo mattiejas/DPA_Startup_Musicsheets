@@ -24,7 +24,7 @@ namespace DPA_Musicsheets.Managers.View
 
         public void Load(Score score)
         {
-            throw new NotImplementedException();
+            // throw new NotImplementedException();
 
             // TODO: convert score to midi sequence, set _viewModel.MidiSequence
         }

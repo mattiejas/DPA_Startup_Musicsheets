@@ -23,8 +23,6 @@ namespace DPA_Musicsheets.ViewModels
         // It has a timer and raises events on the right moments.
         private Sequencer _sequencer;
 
-        private readonly MidiPlayerViewManager _viewManager;
-
         public Sequence MidiSequence
         {
             get { return _sequencer.Sequence; }
@@ -36,10 +34,11 @@ namespace DPA_Musicsheets.ViewModels
             }
         }
 
-        public MidiPlayerViewModel(IList<IViewManager> viewManagers)
+        public MidiPlayerViewModel(IViewManagerPool pool)
         {
-            _viewManager = (MidiPlayerViewManager)viewManagers.First(viewManager => viewManager is MidiPlayerViewManager);
-            _viewManager.RegisterViewModel(this);
+            var viewManager = pool.GetInstance<MidiPlayerViewManager>();
+//            _viewManager = (MidiPlayerViewManager)viewManagers.First(viewManager => viewManager is MidiPlayerViewManager);
+            viewManager.RegisterViewModel(this);
 
             // The OutputDevice is a midi device on the midi channel of your computer.
             // The audio will be streamed towards this output.
