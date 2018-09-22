@@ -1,7 +1,9 @@
-﻿using DPA_Musicsheets.Builders;
+﻿using System;
+using DPA_Musicsheets.Builders;
 using DPA_Musicsheets.ViewModels;
 using Common.Interfaces;
 using Common.Models;
+using Common.Exceptions;
 using Note = Common.Models.Note;
 using Rest = Common.Models.Rest;
 
@@ -24,6 +26,8 @@ namespace DPA_Musicsheets.Managers.View
 
         public void Load(Score score)
         {
+            if (_viewModel == null) throw new ViewModelNotFoundException();
+
             _builder.Reset(); // reset builder so symbols don't stack
 
             _builder.AddClef(score.Clef);

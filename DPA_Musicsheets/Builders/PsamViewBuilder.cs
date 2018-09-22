@@ -4,8 +4,8 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DPA_Musicsheets.Exceptions;
 using Common.Definitions;
+using Common.Exceptions;
 using Common.Interfaces;
 using Common.Models;
 using PSAMControlLibrary;
@@ -291,7 +291,7 @@ namespace DPA_Musicsheets.Builders
             {
                 if (symbol is PSAMNote note)
                 {
-                    var duration = GetProgressDuration((double) _meter.Beat / (double) note.Duration,
+                    var duration = GetProgressDuration((double)_meter.Beat / (double)note.Duration,
                         note.NumberOfDots);
                     progress -= duration; // subtract duration from progress                    
                 }

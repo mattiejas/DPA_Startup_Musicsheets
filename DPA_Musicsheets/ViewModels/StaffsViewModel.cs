@@ -29,9 +29,9 @@ namespace DPA_Musicsheets.ViewModels
         /// Constructor
         /// </summary>
         /// <param name="musicLoader">We need the musicloader so it can set our staffs.</param>
-        public StaffsViewModel(IList<IViewManager> viewManagers)
+        public StaffsViewModel(IViewManagerPool pool)
         {
-            _viewManager = (PsamViewManager) viewManagers.First(viewManager => viewManager is PsamViewManager);
+            _viewManager = pool.GetInstance<PsamViewManager>();
             _viewManager.RegisterViewModel(this);
 
             Staffs = new ObservableCollection<MusicalSymbol>();

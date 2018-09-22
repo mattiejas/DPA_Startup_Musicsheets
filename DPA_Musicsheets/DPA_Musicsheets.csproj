@@ -103,7 +103,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Exceptions\ClefNotFoundException.cs" />
     <Compile Include="Builders\PsamViewBuilder.cs" />
     <Compile Include="Managers\MidiManager.cs" />
     <Compile Include="Managers\MidiToLilyHelper.cs" />
@@ -235,6 +234,9 @@
       <Project>{0db6f715-4bb9-4b69-9c30-0230654d7115}</Project>
       <Name>Common</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Exceptions\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

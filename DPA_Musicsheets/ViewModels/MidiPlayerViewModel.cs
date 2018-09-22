@@ -23,8 +23,6 @@ namespace DPA_Musicsheets.ViewModels
         // It has a timer and raises events on the right moments.
         private Sequencer _sequencer;
 
-        private readonly MidiPlayerViewManager _viewManager;
-
         public Sequence MidiSequence
         {
             get { return _sequencer.Sequence; }
@@ -36,10 +34,10 @@ namespace DPA_Musicsheets.ViewModels
             }
         }
 
-        public MidiPlayerViewModel(IList<IViewManager> viewManagers)
+        public MidiPlayerViewModel(IViewManagerPool pool)
         {
-            _viewManager = (MidiPlayerViewManager)viewManagers.First(viewManager => viewManager is MidiPlayerViewManager);
-            _viewManager.RegisterViewModel(this);
+            var viewManager = pool.GetInstance<MidiPlayerViewManager>();
+            viewManager.RegisterViewModel(this);
 
             // The OutputDevice is a midi device on the midi channel of your computer.
             // The audio will be streamed towards this output.
@@ -57,7 +55,7 @@ namespace DPA_Musicsheets.ViewModels
             };
 
             // TODO: Can we use some sort of eventing system so the managers layer doesn't have to know the viewmodel layer?
-//            musicLoader.MidiPlayerViewModel = this;
+            //            musicLoader.MidiPlayerViewModel = this;
         }
 
         private void UpdateButtons()
