@@ -74,6 +74,9 @@ namespace DPA_Musicsheets.Managers
             var psamNote = new PSAMNote(note.Name.ToString(), modifier, (int)note.Octave,
                 (MusicalSymbolDuration)note.Duration, direction, NoteTieType.None, new List<NoteBeamType> { NoteBeamType.Single });
 
+            // set dots
+            psamNote.NumberOfDots = note.Dots;
+
             _notes.Add(psamNote);
         }
 
@@ -101,6 +104,9 @@ namespace DPA_Musicsheets.Managers
 
                 var psamNote = new PSAMNote(note.Note.Name.ToString(), modifier, (int)note.Note.Octave,
                     (MusicalSymbolDuration)note.Note.Duration, direction, NoteTieType.None, note.Beams);
+
+                // set dots
+                psamNote.NumberOfDots = note.Note.Dots;
 
                 _notes.Add(psamNote);
             }
@@ -249,13 +255,31 @@ namespace DPA_Musicsheets.Managers
             }
         }
 
+        /*
+         * Als maatsoort 4/4 is, dan heeft een achtste noot een duur van 0,5 tellen.
+         * Als een achtste noot één dot heeft, dan duurt de noot 0,5 + (0,5/2) = 0,75 tellen.
+         * Als een achtste noot twee dots heeft, dan duurt de noot 0,75 + (0,25/2) = 0,875 tellen:
+         */
+        private double GetProgressDuration(double duration, int dots)
+        {
+            return GetProgressDurationHelper(duration, duration, dots);
+        }
+
+        private double GetProgressDurationHelper(double duration, double alterDuration, int dots)
+        {
+            if (dots == 0) return duration;
+            return GetProgressDurationHelper(duration + (alterDuration / 2), (alterDuration / 2), --dots);
+        }
+
         public IList<MusicalSymbol> Build()
         {
             double progress = _meter.Ticks; // set progress to ticks, e.g. 4
 
             foreach (var note in _notes)
             {
-                progress -= (double)_meter.Beat / (double)note.Duration; // subtract duration from progress
+                var duration = GetProgressDuration((double)_meter.Beat / (double)note.Duration, note.NumberOfDots);
+                progress -= duration; // subtract duration from progress
+
                 _symbols.Add(note);
 
                 if (progress <= 0) // draw barline when progress = 0
