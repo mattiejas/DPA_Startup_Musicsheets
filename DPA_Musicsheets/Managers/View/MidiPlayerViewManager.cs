@@ -39,7 +39,6 @@ namespace DPA_Musicsheets.Managers.View
 
             foreach (var symbolGroup in score.SymbolGroups)
             {
-                // TODO: Matthias klopt de symbolGroup.Meter?
                 int _bpm = 120;                                 // Aantal beatnotes per minute.
                 int _beatNote = (int)symbolGroup.Meter.Beat;    // De waarde van een beatnote.
                 int _beatsPerBar = symbolGroup.Meter.Ticks;     // Aantal beatnotes per maat.
@@ -70,11 +69,14 @@ namespace DPA_Musicsheets.Managers.View
                     double percentageOfBeatNote = (1.0 / _beatNote) / absoluteLength;
                     double deltaTicks = (sequence.Division / relationToQuartNote) / percentageOfBeatNote;
 
+                    if (symbol is Rest _)
+                    {
+                        absoluteTicks += (int)deltaTicks;
+                    }
+
                     // Calculate height
-                    // TODO: Wat doen we met rust?
                     if (symbol is Note note)
                     {
-
                         int noteHeight = notesOrderWithCrosses.IndexOf(note.Name.ToString().ToLower()) + ((int)note.Octave + 1) * 12;
 
                         int modifier = 0;
@@ -88,7 +90,6 @@ namespace DPA_Musicsheets.Managers.View
                         notesTrack.Insert(absoluteTicks, new ChannelMessage(ChannelCommand.NoteOn, 1, noteHeight, 0)); // Data2 = volume
                     }
                 }
-
                 notesTrack.Insert(absoluteTicks, MetaMessage.EndOfTrackMessage);
                 metaTrack.Insert(absoluteTicks, MetaMessage.EndOfTrackMessage);
             }
