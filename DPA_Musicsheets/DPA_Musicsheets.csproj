@@ -104,6 +104,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Builders\PsamViewBuilder.cs" />
+    <Compile Include="Strategies\IFileStrategy.cs" />
+    <Compile Include="Strategies\LilypondFileStrategy.cs" />
+    <Compile Include="Strategies\MidiFileStrategy.cs" />
     <Compile Include="Managers\MidiManager.cs" />
     <Compile Include="Managers\MidiToLilyHelper.cs" />
     <Compile Include="Managers\MusicLoader.cs" />
