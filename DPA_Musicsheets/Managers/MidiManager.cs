@@ -15,7 +15,8 @@ namespace DPA_Musicsheets.Managers
             SymbolGroup symbolGroup = GetMetadataFromTrack(sequence[0]);
             symbolGroup.Symbols = GetSymbolsFromTrack(sequence[1], sequence.Division, symbolGroup.Meter);
 
-            return new Score {
+            return new Score
+            {
                 SymbolGroups = { symbolGroup },
                 Clef = Clefs.Treble
             };
@@ -227,7 +228,7 @@ namespace DPA_Musicsheets.Managers
             }
 
             double percentageOfBeatNote = deltaTicks / division;
-            percentageOfBar = (1.0 / timeSignature.Ticks) * percentageOfBeatNote;
+            percentageOfBar = (1.0 / (int)timeSignature.Beat) * percentageOfBeatNote;
 
             for (int noteLength = 32; noteLength >= 1; noteLength -= 1)
             {
@@ -266,7 +267,7 @@ namespace DPA_Musicsheets.Managers
 
                     while (currentTime < (noteLength - subtractDuration))
                     {
-                        var addtime = 1 / ((subtractDuration / (int)timeSignature.Beat) * Math.Pow(2, dots));
+                        var addtime = 1 / ((subtractDuration / timeSignature.Ticks) * Math.Pow(2, dots));
                         if (addtime <= 0) break;
                         currentTime += addtime;
                         if (currentTime <= (noteLength - subtractDuration))
