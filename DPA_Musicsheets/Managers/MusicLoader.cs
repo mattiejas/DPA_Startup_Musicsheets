@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Common.Interfaces;
+using DPA_Musicsheets.Strategies;
 using Note = PSAMControlLibrary.Note;
 using Rest = PSAMControlLibrary.Rest;
 using TimeSignature = PSAMControlLibrary.TimeSignature;
@@ -37,31 +38,42 @@ namespace DPA_Musicsheets.Managers
         public MidiPlayerViewModel MidiPlayerViewModel { get; set; }
 
         private readonly IViewManagerPool _pool;
+        private static Dictionary<string, IFileStrategy> _strategies;
 
         public MusicLoader(IViewManagerPool pool)
         {
             _pool = pool;
+
+            _strategies = new Dictionary<string, IFileStrategy>
+            {
+                {".mid", new MidiFileStrategy(pool)}, // TODO: Is this dirty?
+                { ".ly", new LilypondFileStrategy(pool)}
+            };
         }
 
         /// <summary>
         /// Opens a file.
-        /// TODO: Remove the switch cases and delegate.
-        /// TODO: Remove the knowledge of filetypes. What if we want to support MusicXML later?
-        /// TODO: Remove the calling of the outer viewmodel layer. We want to be able reuse this in an ASP.NET Core application for example.
+        /// [] TODO: Remove the switch cases and delegate.
+        /// [] TODO: Remove the knowledge of filetypes. What if we want to support MusicXML later?
+        /// [] TODO: Remove the calling of the outer viewmodel layer. We want to be able reuse this in an ASP.NET Core application for example.
         /// </summary>
         /// <param name="fileName"></param>
         public void OpenFile(string fileName)
         {
+            var extension = Path.GetExtension(fileName);
+            _strategies[extension].Handle(fileName);
+            /*
             if (Path.GetExtension(fileName).EndsWith(".mid"))
             {
+                // TODO: Nadenken over de flow, want PSAMViewManager heeft een score nodig (dat wordt gegenereerd door een Sequence en MidiPlayer gebruikt juist de score om het om te zetten naar Midi (kortom twee keer hetzelfde gebeurd terwijl de sequence al hebben
                 MidiSequence = new Sequence();
                 MidiSequence.Load(fileName);
 
-                //                MidiPlayerViewModel.MidiSequence = MidiSequence;
+                // MidiPlayerViewModel.MidiSequence = MidiSequence;
 
                 // TODO: load lilypond text 
-                //                this.LilypondText = LoadMidiIntoLilypond(MidiSequence);
-                //                this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
+                // this.LilypondText = LoadMidiIntoLilypond(MidiSequence);
+                // this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
 
                 var score = MidiManager.Load(MidiSequence);
                 foreach (var viewManager in _pool)
@@ -85,7 +97,8 @@ namespace DPA_Musicsheets.Managers
                 throw new NotSupportedException($"File extension {Path.GetExtension(fileName)} is not supported.");
             }
 
-            //            LoadLilypondIntoWpfStaffsAndMidi(LilypondText);
+            // LoadLilypondIntoWpfStaffsAndMidi(LilypondText);
+            */
         }
 
         /// <summary>
