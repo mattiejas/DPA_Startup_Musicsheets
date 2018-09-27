@@ -44,6 +44,8 @@ namespace DPA_Musicsheets.Builders
             _notes = new List<MusicalSymbol>();
             _symbols = new List<MusicalSymbol>();
             _buffer = new List<NoteBeams>();
+
+            _meter = null;
         }
 
         public void Reset()
@@ -51,6 +53,8 @@ namespace DPA_Musicsheets.Builders
             _notes.Clear();
             _symbols.Clear();
             _buffer.Clear();
+
+            _meter = null;
         }
 
         public void AddNote(Note note)
@@ -261,6 +265,10 @@ namespace DPA_Musicsheets.Builders
 
             if (_meter != ts) // only add meter when it is different from the previous one
             {
+                if (_meter != null)
+                {
+                    _symbols.Add(new Barline());
+                }
                 _symbols.Add(new PSAMTimeSignature(TimeSignatureType.Numbers, (uint)ts.Ticks,
                     (uint)ts.Beat));
                 _meter = ts;

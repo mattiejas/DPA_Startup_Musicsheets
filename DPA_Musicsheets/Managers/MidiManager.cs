@@ -4,28 +4,41 @@ using System.Diagnostics;
 using System.Text;
 using Common.Definitions;
 using Common.Models;
+using Common.Utils;
 using Sanford.Multimedia.Midi;
 
 namespace DPA_Musicsheets.Managers
 {
     public static class MidiManager
     {
-        public static Score Load(Sequence sequence)
+        internal class MetaSymbolGroup
         {
-            SymbolGroup symbolGroup = GetMetadataFromTrack(sequence[0]);
-            symbolGroup.Symbols = GetSymbolsFromTrack(sequence[1], sequence.Division, symbolGroup.Meter);
-
-            return new Score
-            {
-                SymbolGroups = { symbolGroup },
-                Clef = Clefs.Treble
-            };
+            public int Start { get; set; }
+            public int? End { get; set; }
+            public SymbolGroup SymbolGroup { get; set; }
         }
 
-        private static List<Symbol> GetSymbolsFromTrack(Track track, int division, TimeSignature timeSignature)
+        public static Score Load(Sequence sequence)
+        {
+            var symbolGroups = GetMetadataFromTrack(sequence[0]);
+            var score = new Score()
+            {
+                Clef = Clefs.Treble
+            };
+
+            foreach (var meta in symbolGroups)
+            {
+                meta.SymbolGroup.Symbols = GetSymbolsFromTrack(sequence[1], sequence.Division, meta.SymbolGroup.Meter, meta.Start, meta.End);
+                score.SymbolGroups.Add(meta.SymbolGroup);
+            }
+
+            return score;
+        }
+
+        private static List<Symbol> GetSymbolsFromTrack(Track track, int division, TimeSignature timeSignature, int start, int? end)
         {
             var symbols = new List<Symbol>();
-            int previousNoteAbsoluteTicks = 0;
+            int previousNoteAbsoluteTicks = start;
             double percentageOfBarReached = 0;
             bool startedNoteIsClosed = true;
 
@@ -35,6 +48,9 @@ namespace DPA_Musicsheets.Managers
                 // TODO: Split this switch statements and create separate logic.
                 // We want to split this so that we can expand our functionality later with new keywords for example.
                 // Hint: Command pattern? Strategies? Factory method?
+                if (midiEvent.AbsoluteTicks < start) continue;
+                if (end != null && midiEvent.AbsoluteTicks >= end) return symbols;
+
                 if (midiMessage.MessageType != MessageType.Channel) continue;
                 var channelMessage = midiEvent.MidiMessage as ChannelMessage;
 
@@ -102,9 +118,10 @@ namespace DPA_Musicsheets.Managers
             return symbols;
         }
 
-        private static SymbolGroup GetMetadataFromTrack(Track track)
+        private static IList<MetaSymbolGroup> GetMetadataFromTrack(Track track)
         {
-            var symbolGroup = new SymbolGroup();
+            var symbolGroups = new List<MetaSymbolGroup>();
+            MetaSymbolGroup last = null;
 
             foreach (var e in track.Iterator())
             {
@@ -115,20 +132,32 @@ namespace DPA_Musicsheets.Managers
                 switch (metaMessage?.MetaType)
                 {
                     case MetaType.TimeSignature:
+                        if (last != null) last.End = e.AbsoluteTicks;
                         var timeSignatureBytes = metaMessage.GetBytes();
-                        symbolGroup.Meter = new TimeSignature
+
+                        var beat = 1 / Math.Pow(timeSignatureBytes[1], -2);
+
+                        var symbolGroup = new SymbolGroup
                         {
-                            Ticks = timeSignatureBytes[0],
-                            Beat = (Durations)(1 / Math.Pow(timeSignatureBytes[1], -2))
+                            Meter = new TimeSignature
+                            {
+                                Ticks = timeSignatureBytes[0],
+                                Beat = DurationUtils.GetClosestDuration(beat)
+                            }
                         };
+
+                        var meta = new MetaSymbolGroup { Start = e.AbsoluteTicks, SymbolGroup = symbolGroup };
+
+                        symbolGroups.Add(meta);
+                        last = meta;
                         break;
                     case MetaType.Tempo:
                         var tempoBytes = metaMessage.GetBytes();
                         var tempo = (tempoBytes[0] & 0xff) << 16 | (tempoBytes[1] & 0xff) << 8 |
                                     (tempoBytes[2] & 0xff);
-                        symbolGroup.Tempo = 60000000 / tempo; // bpm
+                        last.SymbolGroup.Tempo = 60000000 / tempo; // bpm
                         break;
-                        //                        case MetaType.EndOfTrack:
+                        //case MetaType.EndOfTrack:
                         //                            if (previousNoteAbsoluteTicks > 0)
                         //                            {
                         //                                // Finish the last notelength.
@@ -145,11 +174,11 @@ namespace DPA_Musicsheets.Managers
                         //                                    percentageOfBar = percentageOfBar - 1;
                         //                                }
                         //                            }
-                        //                            break;
+                        //break;
                 }
             }
 
-            return symbolGroup;
+            return symbolGroups;
         }
 
         private static Note GetNoteFromMidiKey(int midiKey)
