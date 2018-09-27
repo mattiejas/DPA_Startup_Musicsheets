@@ -303,12 +303,22 @@ namespace DPA_Musicsheets.Builders
                     progress -= duration; // subtract duration from progress    
                 }
 
-                _symbols.Add(symbol);
 
-                if (progress <= 0) // draw barline when progress = 0
+                if (progress == 0) // Bar is full add symbol, then barline. Reset the progress
                 {
+                    _symbols.Add(symbol);
                     _symbols.Add(new Barline());
                     progress = _meter.Ticks;
+                }
+                else if (progress < 0) // Symbol won't fit in the bar. Add barline then symbol. Reset progress with remaining number.
+                {
+                    _symbols.Add(new Barline());
+                    _symbols.Add(symbol);
+                    progress = progress + _meter.Ticks;
+                }
+                else
+                {
+                    _symbols.Add(symbol); // Add symbol
                 }
             }
 
