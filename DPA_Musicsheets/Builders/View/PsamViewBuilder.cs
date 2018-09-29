@@ -18,7 +18,7 @@ using PSAMRest = PSAMControlLibrary.Rest;
 using TimeSignature = Common.Models.TimeSignature;
 
 
-namespace DPA_Musicsheets.Builders
+namespace DPA_Musicsheets.Builders.View
 {
     public class PsamViewBuilder : IViewBuilder<MusicalSymbol>
     {

@@ -103,12 +103,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Builders\PsamViewBuilder.cs" />
+    <Compile Include="Builders\Score\LilypondScoreBuilder.cs" />
+    <Compile Include="Builders\View\PsamViewBuilder.cs" />
     <Compile Include="Managers\View\LilypondViewManager.cs" />
     <Compile Include="Strategies\IFileStrategy.cs" />
     <Compile Include="Strategies\LilypondFileStrategy.cs" />
     <Compile Include="Strategies\MidiFileStrategy.cs" />
-    <Compile Include="Managers\MidiManager.cs" />
+    <Compile Include="Builders\Score\MidiScoreBuilder.cs" />
     <Compile Include="Managers\MidiToLilyHelper.cs" />
     <Compile Include="Managers\MusicLoader.cs" />
     <Compile Include="Managers\View\MidiPlayerViewManager.cs" />

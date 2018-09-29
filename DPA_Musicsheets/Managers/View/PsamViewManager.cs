@@ -6,6 +6,7 @@ using Common.Models;
 using Common.Exceptions;
 using Note = Common.Models.Note;
 using Rest = Common.Models.Rest;
+using DPA_Musicsheets.Builders.View;
 
 namespace DPA_Musicsheets.Managers.View
 {

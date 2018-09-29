@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using Common.Definitions;
+using Common.Interfaces;
 using Common.Models;
 using Common.Utils;
 using Sanford.Multimedia.Midi;
 
-namespace DPA_Musicsheets.Managers
+namespace DPA_Musicsheets.Builders.Score
 {
-    public static class MidiManager
+    public class MidiScoreBuilder : IScoreBuilder<Sequence>
     {
         internal class MetaSymbolGroup
         {
@@ -18,10 +19,10 @@ namespace DPA_Musicsheets.Managers
             public SymbolGroup SymbolGroup { get; set; }
         }
 
-        public static Score Load(Sequence sequence)
+        public Common.Models.Score Build(Sequence sequence)
         {
             var symbolGroups = GetMetadataFromTrack(sequence[0]);
-            var score = new Score()
+            var score = new Common.Models.Score()
             {
                 Clef = Clefs.Treble
             };
@@ -35,7 +36,7 @@ namespace DPA_Musicsheets.Managers
             return score;
         }
 
-        private static List<Symbol> GetSymbolsFromTrack(Track track, int division, TimeSignature timeSignature, int start, int? end)
+        private List<Symbol> GetSymbolsFromTrack(Track track, int division, TimeSignature timeSignature, int start, int? end)
         {
             var symbols = new List<Symbol>();
             int previousNoteAbsoluteTicks = start;
@@ -118,7 +119,7 @@ namespace DPA_Musicsheets.Managers
             return symbols;
         }
 
-        private static IList<MetaSymbolGroup> GetMetadataFromTrack(Track track)
+        private IList<MetaSymbolGroup> GetMetadataFromTrack(Track track)
         {
             var symbolGroups = new List<MetaSymbolGroup>();
             MetaSymbolGroup last = null;
@@ -181,7 +182,7 @@ namespace DPA_Musicsheets.Managers
             return symbolGroups;
         }
 
-        private static Note GetNoteFromMidiKey(int midiKey)
+        private Note GetNoteFromMidiKey(int midiKey)
         {
             Names name;
             var octave = (Octaves)(midiKey / 12 - 1);
@@ -243,7 +244,7 @@ namespace DPA_Musicsheets.Managers
             return note;
         }
 
-        public static Symbol SetDuration(Symbol symbol, TimeSignature timeSignature, int absoluteTicks, int nextNoteAbsoluteTicks, int division, out double percentageOfBar)
+        private Symbol SetDuration(Symbol symbol, TimeSignature timeSignature, int absoluteTicks, int nextNoteAbsoluteTicks, int division, out double percentageOfBar)
         {
             int duration = 0;
             int dots = 0;
