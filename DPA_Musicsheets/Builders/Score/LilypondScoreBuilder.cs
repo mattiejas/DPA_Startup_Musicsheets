@@ -19,8 +19,12 @@ namespace DPA_Musicsheets.Builders.Score
                 sb.AppendLine(line);
             }
 
-            var context = LilypondInterpreter.Tokenizer.Tokenize(sb.ToString());
+            //  1. Tokenizer => retourneert een lijst met tokens, dus => Type (enum), Waarde
+            // Converten lijst van tokens naar Score
+       
 
+            var symbols = LilypondInterpreter.Tokenizer.Tokenize(sb.ToString()).Interpret();
+            
             return new Common.Models.Score();
         }
     }

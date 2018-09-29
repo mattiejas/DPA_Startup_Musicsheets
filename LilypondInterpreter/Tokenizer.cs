@@ -7,10 +7,10 @@ namespace LilypondInterpreter
 {
     public static class Tokenizer
     {
-        public static Context Tokenize(string input)
+        public static Scope Tokenize(string input)
         {
             var tokens = input.Split(new char[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            return new Context(tokens);
+            return new Scope(tokens);
         }
     }
 }
