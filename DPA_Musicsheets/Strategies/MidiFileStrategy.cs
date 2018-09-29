@@ -8,7 +8,7 @@ namespace DPA_Musicsheets.Strategies
     class MidiFileStrategy : IFileStrategy
     {
         private readonly IViewManagerPool _pool;
-        private IScoreBuilder<Sequence> _builder;
+        private readonly IScoreBuilder<Sequence> _builder;
 
         public MidiFileStrategy(IViewManagerPool pool)
         {
