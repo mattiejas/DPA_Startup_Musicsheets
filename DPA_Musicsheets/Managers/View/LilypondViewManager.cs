@@ -33,8 +33,8 @@ namespace DPA_Musicsheets.Managers.View
             */
 
             // Todo: Zorgt nu voor een foutmelding, omdat MainViewModel n MusicLoader gekoppeld is aan de LilypondViewModel (events).
-            ViewModel.LilypondText = "To be continued";
-            ViewModel.LilypondTextLoaded(ViewModel.LilypondText);
+            // ViewModel.LilypondText = "To be continued";
+            // ViewModel.LilypondTextLoaded(ViewModel.LilypondText);
         }
 
         public void RegisterViewModel(LilypondViewModel viewModel)
