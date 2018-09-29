@@ -34,16 +34,12 @@ namespace DPA_Musicsheets.Managers
         private int _bpm = 120;       // Aantal beatnotes per minute.
         private int _beatsPerBar;     // Aantal beatnotes per maat.
 
-        public LilypondViewModel LilypondViewModel { get; set; }
         public MidiPlayerViewModel MidiPlayerViewModel { get; set; }
 
-        private readonly IViewManagerPool _pool;
         private static Dictionary<string, IFileStrategy> _strategies;
 
         public MusicLoader(IViewManagerPool pool)
         {
-            _pool = pool;
-
             _strategies = new Dictionary<string, IFileStrategy>
             {
                 {".mid", new MidiFileStrategy(pool)}, // TODO: Is this dirty?
@@ -51,54 +47,13 @@ namespace DPA_Musicsheets.Managers
             };
         }
 
-        /// <summary>
-        /// Opens a file.
-        /// [] TODO: Remove the switch cases and delegate.
-        /// [] TODO: Remove the knowledge of filetypes. What if we want to support MusicXML later?
-        /// [] TODO: Remove the calling of the outer viewmodel layer. We want to be able reuse this in an ASP.NET Core application for example.
-        /// </summary>
-        /// <param name="fileName"></param>
         public void OpenFile(string fileName)
         {
             var extension = Path.GetExtension(fileName);
-            _strategies[extension].Handle(fileName);
-            /*
-            if (Path.GetExtension(fileName).EndsWith(".mid"))
+            if (extension != null && _strategies.ContainsKey(extension))
             {
-                // TODO: Nadenken over de flow, want PSAMViewManager heeft een score nodig (dat wordt gegenereerd door een Sequence en MidiPlayer gebruikt juist de score om het om te zetten naar Midi (kortom twee keer hetzelfde gebeurd terwijl de sequence al hebben
-                MidiSequence = new Sequence();
-                MidiSequence.Load(fileName);
-
-                // MidiPlayerViewModel.MidiSequence = MidiSequence;
-
-                // TODO: load lilypond text 
-                // this.LilypondText = LoadMidiIntoLilypond(MidiSequence);
-                // this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
-
-                var score = MidiManager.Load(MidiSequence);
-                foreach (var viewManager in _pool)
-                {
-                    viewManager.Load(score);
-                }
+                _strategies[extension].Handle(fileName);
             }
-            else if (Path.GetExtension(fileName).EndsWith(".ly"))
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (var line in File.ReadAllLines(fileName))
-                {
-                    sb.AppendLine(line);
-                }
-
-                this.LilypondText = sb.ToString();
-                this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
-            }
-            else
-            {
-                throw new NotSupportedException($"File extension {Path.GetExtension(fileName)} is not supported.");
-            }
-
-            // LoadLilypondIntoWpfStaffsAndMidi(LilypondText);
-            */
         }
 
         /// <summary>
@@ -120,8 +75,6 @@ namespace DPA_Musicsheets.Managers
             MidiSequence = GetSequenceFromWPFStaffs();
             MidiPlayerViewModel.MidiSequence = MidiSequence;
         }
-
-        #region Midi loading (loads midi to lilypond)
 
         /// <summary>
         /// TODO: Create our own domain classes to be independent of external libraries/languages.
@@ -229,9 +182,7 @@ namespace DPA_Musicsheets.Managers
 
             return lilypondContent.ToString();
         }
-        #endregion Midiloading (loads midi to lilypond)
 
-        #region Staffs loading (loads lilypond to WPF staffs)
         private static IEnumerable<MusicalSymbol> GetStaffsFromTokens(LinkedList<LilypondToken> tokens)
         {
             List<MusicalSymbol> symbols = new List<MusicalSymbol>();
@@ -415,9 +366,7 @@ namespace DPA_Musicsheets.Managers
 
             return tokens;
         }
-        #endregion Staffs loading (loads lilypond to WPF staffs)
 
-        #region Saving to files
         internal void SaveToMidi(string fileName)
         {
             Sequence sequence = GetSequenceFromWPFStaffs();
@@ -535,6 +484,5 @@ namespace DPA_Musicsheets.Managers
                 outputFile.Close();
             }
         }
-        #endregion Saving to files
     }
 }
