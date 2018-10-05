@@ -9,19 +9,23 @@ using System.Threading.Tasks;
 
 namespace DPA_Musicsheets.Builders.Score
 {
-    class LilypondScoreBuilder : IScoreBuilder<string>
+    class LilypondScoreBuilder : IScoreBuilder
     {
-        public Common.Models.Score Build(string input)
+        private readonly string _input;
+
+        public LilypondScoreBuilder(string input)
+        {
+            _input = input;
+        }
+
+        public Common.Models.Score Build()
         {
             StringBuilder sb = new StringBuilder();
-            foreach (var line in File.ReadAllLines(input))
+            foreach (var line in File.ReadAllLines(_input))
             {
                 sb.AppendLine(line);
             }
 
-            //  1. Tokenizer => retourneert een lijst met tokens, dus => Type (enum), Waarde
-            // Converten lijst van tokens naar Score
-       
             var tokens = LilypondInterpreter.Tokenizer.Tokenize(sb.ToString());
             var score = LilypondInterpreter.Interpreter.Interpret(tokens);
             

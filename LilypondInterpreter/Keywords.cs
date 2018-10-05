@@ -11,7 +11,6 @@ namespace LilypondInterpreter
         Relative,
         Tempo,
         Repeat,
-        Alternative,
-        OpenScope,
+        Alternative
     }
 }

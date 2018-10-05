@@ -15,37 +15,22 @@ namespace DPA_Musicsheets.Strategies
     class LilypondFileStrategy : IFileStrategy
     {
         private readonly IViewManagerPool _pool;
-        private readonly IScoreBuilder<string> _builder;
-
-        public string LilypondText { get; set; }
-        public LilypondViewModel LilypondViewModel { get; set; }
+        private IScoreBuilder _builder;
 
         public LilypondFileStrategy(IViewManagerPool pool)
         {
             _pool = pool;
-            _builder = new LilypondScoreBuilder();
         }
 
         public void Handle(string filename)
         {
-            var score = _builder.Build(filename);
+            _builder = new LilypondScoreBuilder(filename);
+            var score = _builder.Build();
 
             foreach (var viewManager in _pool)
             {
                 viewManager.Load(score);
             }
-
-            /*
-                Verplaatst naar LilypondViewManager
-                StringBuilder sb = new StringBuilder();
-                foreach (var line in File.ReadAllLines(filename))
-                {
-                    sb.AppendLine(line);
-                }
-
-                this.LilypondText = sb.ToString();
-                this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
-            */
         }
     }
 }

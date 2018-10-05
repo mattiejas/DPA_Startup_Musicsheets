@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Common.Interfaces;
 
 namespace LilypondInterpreter
 {
@@ -9,12 +10,15 @@ namespace LilypondInterpreter
     {
         public static Score Interpret(List<Token> tokens)
         {
-            var score = new Score();
-            var visitor = new TokenVisitor();
+            var builder = new TokenScoreBuilder();
+
+            var visitor = new TokenVisitor(builder);
             foreach (var token in tokens)
             {
                 token.Accept(visitor);
             }
+
+            return builder.Build();
         }
     }
 }
