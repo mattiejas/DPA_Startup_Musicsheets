@@ -22,10 +22,11 @@ namespace DPA_Musicsheets.Builders.Score
             //  1. Tokenizer => retourneert een lijst met tokens, dus => Type (enum), Waarde
             // Converten lijst van tokens naar Score
        
-
-            var symbols = LilypondInterpreter.Tokenizer.Tokenize(sb.ToString()).Interpret();
+            var tokens = LilypondInterpreter.Tokenizer.Tokenize(sb.ToString());
+            var score = LilypondInterpreter.Interpreter.Interpret(tokens);
             
-            return new Common.Models.Score();
+            return score;
         }
     }
 }
+ 
