@@ -10,9 +10,10 @@ namespace LilypondInterpreter
     {
         void Visit(Note note);
         void Visit(Rest rest);
-        void Visit(CloseScope closeScope);
         void Visit(Keyword keyword);
+        void Visit(CloseScope closeScope);
         void Visit(OpenScope openScope);
+        void Visit(Repeat repeat);
     }
 
     public class TokenVisitor : ITokenVisitor
@@ -48,6 +49,11 @@ namespace LilypondInterpreter
         public void Visit(OpenScope openScope)
         {
             _builder.OpenNewScope();
+        }
+
+        public void Visit(Repeat repeat)
+        {
+            _builder.AddRepeat(repeat);
         }
     }
 }
