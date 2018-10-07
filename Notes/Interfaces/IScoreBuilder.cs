@@ -5,8 +5,8 @@ using System.Text;
 
 namespace Common.Interfaces
 {
-    public interface IScoreBuilder<T>
+    public interface IScoreBuilder
     {
-        Score Build(T input);
+        Score Build();
     }
 }

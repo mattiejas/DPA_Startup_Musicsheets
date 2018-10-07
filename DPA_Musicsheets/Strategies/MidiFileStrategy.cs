@@ -8,12 +8,11 @@ namespace DPA_Musicsheets.Strategies
     class MidiFileStrategy : IFileStrategy
     {
         private readonly IViewManagerPool _pool;
-        private IScoreBuilder<Sequence> _builder;
+        private IScoreBuilder _builder;
 
         public MidiFileStrategy(IViewManagerPool pool)
         {
             _pool = pool;
-            _builder = new MidiScoreBuilder();
         }
 
         public void Handle(string filename)
@@ -25,7 +24,8 @@ namespace DPA_Musicsheets.Strategies
             // this.LilypondText = LoadMidiIntoLilypond(MidiSequence);
             // this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
 
-            var score = _builder.Build(sequence);
+            _builder = new MidiScoreBuilder(sequence);
+            var score = _builder.Build();
             foreach (var viewManager in _pool)
             {
                 viewManager.Load(score);

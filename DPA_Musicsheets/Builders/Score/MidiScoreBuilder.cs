@@ -10,8 +10,10 @@ using Sanford.Multimedia.Midi;
 
 namespace DPA_Musicsheets.Builders.Score
 {
-    public class MidiScoreBuilder : IScoreBuilder<Sequence>
+    public class MidiScoreBuilder : IScoreBuilder
     {
+        private readonly Sequence _sequence;
+
         internal class MetaSymbolGroup
         {
             public int Start { get; set; }
@@ -19,9 +21,14 @@ namespace DPA_Musicsheets.Builders.Score
             public SymbolGroup SymbolGroup { get; set; }
         }
 
-        public Common.Models.Score Build(Sequence sequence)
+        public MidiScoreBuilder(Sequence sequence)
         {
-            var symbolGroups = GetMetadataFromTrack(sequence[0]);
+            _sequence = sequence;
+        }
+
+        public Common.Models.Score Build()
+        {
+            var symbolGroups = GetMetadataFromTrack(_sequence[0]);
             var score = new Common.Models.Score()
             {
                 Clef = Clefs.Treble
@@ -29,7 +36,7 @@ namespace DPA_Musicsheets.Builders.Score
 
             foreach (var meta in symbolGroups)
             {
-                meta.SymbolGroup.Symbols = GetSymbolsFromTrack(sequence[1], sequence.Division, meta.SymbolGroup.Meter, meta.Start, meta.End);
+                meta.SymbolGroup.Symbols = GetSymbolsFromTrack(_sequence[1], _sequence.Division, meta.SymbolGroup.Meter, meta.Start, meta.End);
                 score.SymbolGroups.Add(meta.SymbolGroup);
             }
 

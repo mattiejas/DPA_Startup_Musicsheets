@@ -16,10 +16,6 @@ namespace DPA_Musicsheets.Managers.View
     {
         private MidiPlayerViewModel _viewModel;
 
-        public MidiPlayerViewManager()
-        {
-        }
-
         public void RegisterViewModel(MidiPlayerViewModel viewModel)
         {
             _viewModel = viewModel;
