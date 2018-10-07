@@ -12,18 +12,18 @@ using Sanford.Multimedia.Midi;
 
 namespace DPA_Musicsheets.Managers.View
 {
-    class MidiPlayerViewManager : IViewManager
+    public class MidiPlayerViewManager : IViewManager
     {
-        private MidiPlayerViewModel _viewModel;
+        private IView<Sequence> _view;
 
-        public void RegisterViewModel(MidiPlayerViewModel viewModel)
+        public void RegisterViewModel(IView<Sequence> view)
         {
-            _viewModel = viewModel;
+            _view = view;
         }
 
         public void Load(Score score)
         {
-            if (_viewModel == null) throw new ViewModelNotFoundException();
+            if (_view == null) throw new ViewModelNotFoundException();
 
             List<string> notesOrderWithCrosses = new List<string>() { "c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b" };
             int absoluteTicks = 0;
@@ -90,7 +90,7 @@ namespace DPA_Musicsheets.Managers.View
                 metaTrack.Insert(absoluteTicks, MetaMessage.EndOfTrackMessage);
             }
 
-            _viewModel.MidiSequence = sequence;
+            _view.Load(sequence);
         }
     }
 }

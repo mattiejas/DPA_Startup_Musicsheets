@@ -14,7 +14,7 @@ namespace DPA_Musicsheets.ViewModels
     /// The viewmodel for playing midi sequences.
     /// It supports starting, stopping and restarting.
     /// </summary>
-    public class MidiPlayerViewModel : ViewModelBase
+    public class MidiPlayerViewModel : ViewModelBase, IView<Sequence>
     {
         private OutputDevice _outputDevice;
         private bool _running;
@@ -122,6 +122,11 @@ namespace DPA_Musicsheets.ViewModels
             _sequencer.Stop();
             _sequencer.Dispose();
             _outputDevice.Dispose();
+        }
+
+        public void Load(Sequence data)
+        {
+            _sequencer.Sequence = data;
         }
     }
 }

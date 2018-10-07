@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using DPA_Musicsheets.Builders;
 using DPA_Musicsheets.ViewModels;
 using Common.Interfaces;
@@ -7,27 +8,28 @@ using Common.Exceptions;
 using Note = Common.Models.Note;
 using Rest = Common.Models.Rest;
 using DPA_Musicsheets.Builders.View;
+using PSAMControlLibrary;
 
 namespace DPA_Musicsheets.Managers.View
 {
     public class PsamViewManager : IViewManager
     {
         private readonly PsamViewBuilder _builder;
-        private StaffsViewModel _viewModel;
+        private IView<IList<MusicalSymbol>> _view;
 
         public PsamViewManager()
         {
             _builder = new PsamViewBuilder();
         }
 
-        public void RegisterViewModel(StaffsViewModel viewModel)
+        public void RegisterViewModel(IView<IList<MusicalSymbol>> view)
         {
-            _viewModel = viewModel;
+            _view = view;
         }
 
         public void Load(Score score)
         {
-            if (_viewModel == null) throw new ViewModelNotFoundException();
+            if (_view == null) throw new ViewModelNotFoundException();
 
             _builder.Reset(); // reset builder so symbols don't stack
 
@@ -52,7 +54,7 @@ namespace DPA_Musicsheets.Managers.View
                 }
             }
 
-            _viewModel.SetStaffs(_builder.Build());
+            _view.Load(_builder.Build());
         }
     }
 }
