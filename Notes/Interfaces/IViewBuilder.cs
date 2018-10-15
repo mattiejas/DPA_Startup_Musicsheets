@@ -12,6 +12,6 @@ namespace Common.Interfaces
         void AddTimeSignature(TimeSignature timeSignature);
 
         void Reset();
-        IList<T> Build();
+        T Build();
     }
 }

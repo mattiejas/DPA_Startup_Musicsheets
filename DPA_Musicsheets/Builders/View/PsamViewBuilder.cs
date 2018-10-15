@@ -20,7 +20,7 @@ using TimeSignature = Common.Models.TimeSignature;
 
 namespace DPA_Musicsheets.Builders.View
 {
-    public class PsamViewBuilder : IViewBuilder<MusicalSymbol>
+    public class PsamViewBuilder : IViewBuilder<IList<MusicalSymbol>>
     {
         internal class NoteBeams
         {

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Common.Exceptions;
 using Common.Interfaces;
 using Common.Models;
+using DPA_Musicsheets.Builders.View;
 using DPA_Musicsheets.ViewModels;
 
 namespace DPA_Musicsheets.Managers.View
@@ -14,27 +15,41 @@ namespace DPA_Musicsheets.Managers.View
     public class LilypondViewManager : IViewManager
     {
         private IView<string> _view;
+        private IViewBuilder<string> _builder;
+
+        public LilypondViewManager()
+        {
+            _builder = new LilypondViewBuilder();
+        }
 
         public void Load(Score score)
         {
             if (_view == null) throw new ViewModelNotFoundException();
 
-            /*
-                Todo: Zet score om naar een string (of iets anders)
+            _builder.Reset(); // reset builder so symbols don't stack
 
-                // Oude werking:
-                StringBuilder sb = new StringBuilder();
-                foreach (var line in File.ReadAllLines(filename)) 
+            _builder.AddClef(score.Clef);
+            _builder.AddTimeSignature(score.SymbolGroups[0].Meter);
+
+            foreach (var symbolGroup in score.SymbolGroups)
+            {
+                _builder.AddTimeSignature(symbolGroup.Meter);
+
+                foreach (var symbol in symbolGroup.Symbols)
                 {
-                    sb.AppendLine(line);
-                }
-                this.LilypondText = sb.ToString();
-                this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
-            */
+                    if (symbol is Note note)
+                    {
+                        _builder.AddNote(note);
+                    }
 
-            // Todo: Zorgt nu voor een foutmelding, omdat MainViewModel n MusicLoader gekoppeld is aan de LilypondViewModel (events).
-            _view.Load("To be continued");
-            // ViewModel.LilypondTextLoaded(ViewModel.LilypondText);
+                    if (symbol is Rest rest)
+                    {
+                        _builder.AddRest(rest);
+                    }
+                }
+            }
+
+            _view.Load(_builder.Build());
         }
 
         public void RegisterViewModel(IView<string> view)
