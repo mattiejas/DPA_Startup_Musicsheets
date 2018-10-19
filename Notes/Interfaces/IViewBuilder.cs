@@ -9,6 +9,7 @@ namespace Common.Interfaces
         void AddNote(Note note);
         void AddRest(Rest rest);
         void AddClef(Clefs clef);
+        void AddTempo(int tempo);
         void AddTimeSignature(TimeSignature timeSignature);
 
         void Reset();

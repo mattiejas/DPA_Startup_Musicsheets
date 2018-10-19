@@ -79,9 +79,12 @@ namespace LilypondInterpreter
             }
         }
 
+        /**
+         * Format: 4=120
+         */
         private void SetTempo(string value)
         {
-            if (!int.TryParse(value, out _lastTempo)) return;
+            if (!int.TryParse(value.TrimStart('4', '='), out _lastTempo)) return;
 
             if (_currentGroup.Symbols.Count == 0) // list is empty
             {

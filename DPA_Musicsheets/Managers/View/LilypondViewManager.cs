@@ -34,6 +34,7 @@ namespace DPA_Musicsheets.Managers.View
             foreach (var symbolGroup in score.SymbolGroups)
             {
                 _builder.AddTimeSignature(symbolGroup.Meter);
+                _builder.AddTempo(symbolGroup.Tempo);
 
                 foreach (var symbol in symbolGroup.Symbols)
                 {

@@ -35,7 +35,7 @@ namespace DPA_Musicsheets.Managers.View
 
             foreach (var symbolGroup in score.SymbolGroups)
             {
-                int _bpm = 120;                                 // Aantal beatnotes per minute.
+                int _bpm = symbolGroup.Tempo;                   // Aantal beatnotes per minute.
                 int _beatNote = (int)symbolGroup.Meter.Beat;    // De waarde van een beatnote.
                 int _beatsPerBar = symbolGroup.Meter.Ticks;     // Aantal beatnotes per maat.
 

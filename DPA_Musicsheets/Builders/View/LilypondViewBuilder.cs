@@ -43,6 +43,11 @@ namespace DPA_Musicsheets.Builders.View
             _lastIsKeyword = true;
         }
 
+        public void AddTempo(int tempo)
+        {
+            _output += $"\\tempo 4={tempo}\n{new string(' ', _scopes * SPACES_IN_TAB)}";
+        }
+
         public void AddNote(Note note)
         {
             _output += $"{(char)note.Name}{(int)note.Duration}{new string('.', note.Dots)} ";

@@ -10,7 +10,6 @@ namespace DPA_Musicsheets.States
     {
         public TypingState(EditorContext context) : base(context)
         {
-
         }
 
         public override void Handle()

@@ -258,6 +258,10 @@ namespace DPA_Musicsheets.Builders.View
             }
         }
 
+        public void AddTempo(int tempo)
+        {
+        }
+
         public void AddTimeSignature(TimeSignature ts)
         {
             if (_buffer.Count > 0) FlushBuffer();
