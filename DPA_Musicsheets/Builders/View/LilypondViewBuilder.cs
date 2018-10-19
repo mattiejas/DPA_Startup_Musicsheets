@@ -112,15 +112,9 @@ namespace DPA_Musicsheets.Builders.View
             }
 
             var difference = note.Octave - GetOctave(note);
-            var diffMod = "";
-            if (difference >= 1 || difference <= -1)
-            {
-                diffMod = difference > 0 ? new string('\'', difference) : new string(',', -difference);
-            }
-
             _output += $"{(char) note.Name}" +
                        $"{GetModifier(note)}" +
-                       $"{diffMod}" +
+                       $"{(difference > 0 ? new string('\'', difference) : new string(',', -difference))}" +
                        $"{(int) note.Duration}" +
                        $"{new string('.', note.Dots)} ";
             _lastIsKeyword = false;
