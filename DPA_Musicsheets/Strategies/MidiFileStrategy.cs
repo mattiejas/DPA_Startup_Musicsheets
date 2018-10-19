@@ -7,29 +7,18 @@ namespace DPA_Musicsheets.Strategies
 {
     class MidiFileStrategy : IFileStrategy
     {
-        private readonly IViewManagerPool _pool;
-        private IScoreBuilder _builder;
+        private readonly ILoadStrategy<Sequence> _loader;
 
-        public MidiFileStrategy(IViewManagerPool pool)
+        public MidiFileStrategy(ILoadStrategy<Sequence> loader)
         {
-            _pool = pool;
+            _loader = loader;
         }
 
         public void Handle(string filename)
         {
             var sequence = new Sequence();
             sequence.Load(filename);
-
-            // TODO: load lilypond text 
-            // this.LilypondText = LoadMidiIntoLilypond(MidiSequence);
-            // this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
-
-            _builder = new MidiScoreBuilder(sequence);
-            var score = _builder.Build();
-            foreach (var viewManager in _pool)
-            {
-                viewManager.Load(score);
-            }
+            _loader.Load(sequence);
         }
     }
 }

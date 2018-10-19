@@ -20,13 +20,7 @@ namespace DPA_Musicsheets.Builders.Score
 
         public Common.Models.Score Build()
         {
-            StringBuilder sb = new StringBuilder();
-            foreach (var line in File.ReadAllLines(_input))
-            {
-                sb.AppendLine(line);
-            }
-
-            var tokens = LilypondInterpreter.Tokenizer.Tokenize(sb.ToString());
+            var tokens = LilypondInterpreter.Tokenizer.Tokenize(_input);
             var score = LilypondInterpreter.Interpreter.Interpret(tokens);
             
             return score;
