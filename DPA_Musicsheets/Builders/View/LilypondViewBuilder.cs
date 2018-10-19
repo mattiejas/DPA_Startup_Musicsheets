@@ -1,6 +1,7 @@
 ﻿using Common.Definitions;
 using Common.Interfaces;
 using Common.Models;
+using Common.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +15,8 @@ namespace DPA_Musicsheets.Builders.View
         private string _output;
         private int _scopes;
         private bool _lastIsKeyword;
-        private Octaves _lastOctave;
         private TimeSignature _lastTimeSignature;
+        private double _progress;
 
         private const int SPACES_IN_TAB = 2;
 
@@ -26,8 +27,8 @@ namespace DPA_Musicsheets.Builders.View
 
         private void Init()
         {
-            _output = "\\relative c' {\n";
             _scopes = 1;
+            _output = $"\\relative c' {{\n{new string(' ', _scopes * SPACES_IN_TAB)}";
             _lastIsKeyword = true;
         }
 
@@ -35,23 +36,38 @@ namespace DPA_Musicsheets.Builders.View
         {
             if (!_lastIsKeyword)
             {
-                _output += $"{new string(' ', _scopes * SPACES_IN_TAB)}{{\n";
+                _output += $"{{\n{new string(' ', _scopes * SPACES_IN_TAB)}";
                 _scopes++;
             }
-            _output += $"{new string(' ', _scopes * SPACES_IN_TAB)}\\clef {clef.ToString().ToLower()}\n";
+            _output += $"\\clef {clef.ToString().ToLower()}\n{new string(' ', _scopes * SPACES_IN_TAB)}";
             _lastIsKeyword = true;
         }
 
         public void AddNote(Note note)
         {
-            _output += $"{new string(' ', _scopes * SPACES_IN_TAB)}{(char)note.Name}{(int)note.Duration}{new string('.', note.Dots)} ";
+            _output += $"{(char)note.Name}{(int)note.Duration}{new string('.', note.Dots)} ";
             _lastIsKeyword = false;
+
+            SetBarlineProgress((double)note.Duration, note.Dots);
         }
 
         public void AddRest(Rest rest)
         {
-            _output += $"{new string(' ', _scopes * SPACES_IN_TAB)}r{(int)rest.Duration}{new string('.', rest.Dots)} ";
+            _output += $"r{(int)rest.Duration}{new string('.', rest.Dots)} ";
             _lastIsKeyword = false;
+
+            SetBarlineProgress((double)rest.Duration, rest.Dots);
+        }
+
+        public void SetBarlineProgress(double duration, int dots)
+        {
+            _progress -= DurationUtils.GetProgressDuration((double)_lastTimeSignature.Beat / duration, dots);
+
+            if (_progress <= 0)
+            {
+                _output += $" |\n{new string(' ', _scopes * SPACES_IN_TAB)}";
+                _progress = _lastTimeSignature.Ticks;
+            }
         }
 
         public void AddTimeSignature(TimeSignature timeSignature)
@@ -59,17 +75,20 @@ namespace DPA_Musicsheets.Builders.View
             if (timeSignature == _lastTimeSignature) return;
             if (!_lastIsKeyword)
             {
-                _output += $"{new string(' ', _scopes * SPACES_IN_TAB)}{{\n";
+                _output += $"{{\n{new string(' ', _scopes * SPACES_IN_TAB)}";
                 _scopes++;
             }
-            _output += $"{new string(' ', _scopes * SPACES_IN_TAB)}\\time {timeSignature.Ticks}/{(int)timeSignature.Beat}\n";
+            _output += $"\\time {timeSignature.Ticks}/{(int)timeSignature.Beat}\n{new string(' ', _scopes * SPACES_IN_TAB)}";
             _lastTimeSignature = timeSignature;
             _lastIsKeyword = true;
+            _progress = timeSignature.Ticks;
         }
 
         private void CloseScopes()
         {
-            while(_scopes > 0)
+            _output = _output.TrimEnd(' ');
+            _output = _output.TrimEnd('\n');
+            while (_scopes > 0)
             {
                 _output += $"\n{new string(' ', --_scopes * SPACES_IN_TAB)}}}";
             }

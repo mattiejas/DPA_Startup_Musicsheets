@@ -16,7 +16,7 @@ using Rest = Common.Models.Rest;
 using Clefs = Common.Definitions.Clefs;
 using PSAMRest = PSAMControlLibrary.Rest;
 using TimeSignature = Common.Models.TimeSignature;
-
+using Common.Utils;
 
 namespace DPA_Musicsheets.Builders.View
 {
@@ -275,22 +275,6 @@ namespace DPA_Musicsheets.Builders.View
             }
         }
 
-        /*
-         * Als maatsoort 4/4 is, dan heeft een achtste noot een duur van 0,5 tellen.
-         * Als een achtste noot één dot heeft, dan duurt de noot 0,5 + (0,5/2) = 0,75 tellen.
-         * Als een achtste noot twee dots heeft, dan duurt de noot 0,75 + (0,25/2) = 0,875 tellen:
-         */
-        private double GetProgressDuration(double duration, int dots)
-        {
-            return GetProgressDurationHelper(duration, duration, dots);
-        }
-
-        private double GetProgressDurationHelper(double duration, double alterDuration, int dots)
-        {
-            if (dots == 0) return duration;
-            return GetProgressDurationHelper(duration + (alterDuration / 2), (alterDuration / 2), --dots);
-        }
-
         public IList<MusicalSymbol> Build()
         {
             double progress = _meter.Ticks; // set progress to ticks, e.g. 4
@@ -299,14 +283,14 @@ namespace DPA_Musicsheets.Builders.View
             {
                 if (symbol is PSAMNote note)
                 {
-                    var duration = GetProgressDuration((double)_meter.Beat / (double)note.Duration,
+                    var duration = DurationUtils.GetProgressDuration((double)_meter.Beat / (double)note.Duration,
                         note.NumberOfDots);
                     progress -= duration; // subtract duration from progress                    
                 }
 
                 if (symbol is PSAMRest rest)
                 {
-                    var duration = GetProgressDuration((double)_meter.Beat / (double)rest.Duration,
+                    var duration = DurationUtils.GetProgressDuration((double)_meter.Beat / (double)rest.Duration,
                         rest.NumberOfDots);
                     progress -= duration; // subtract duration from progress    
                 }
