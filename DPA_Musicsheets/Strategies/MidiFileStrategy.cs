@@ -18,7 +18,9 @@ namespace DPA_Musicsheets.Strategies
         {
             var sequence = new Sequence();
             sequence.Load(filename);
+
             _loader.Load(sequence);
+            _loader.Apply();
         }
     }
 }

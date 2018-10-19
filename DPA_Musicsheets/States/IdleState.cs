@@ -9,11 +9,11 @@ using System.Windows.Threading;
 
 namespace DPA_Musicsheets.States
 {
-    public class IdleState : AbstractState
+    public class IdleState : State
     {
         private DispatcherTimer _timer;
 
-        public IdleState(Context context) : base(context)
+        public IdleState(EditorContext context) : base(context)
         {
             _timer = new DispatcherTimer();
             _timer.Tick += new EventHandler(OnTimedEvent);

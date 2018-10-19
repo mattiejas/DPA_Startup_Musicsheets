@@ -7,34 +7,29 @@ using System.Threading.Tasks;
 
 namespace DPA_Musicsheets.States
 {
-    public class Context
+    public class EditorContext
     {
         public readonly IViewManagerPool Pool;
-        public AbstractState CurrentState { get; private set; }
+        public State CurrentState { get; private set; }
 
-        public List<string> Mementos { get; set; }
+        public List<string> History { get; set; }
         public string CurrentEditorContent { get; set; }
 
-        public Context(IViewManagerPool pool)
+        public EditorContext(IViewManagerPool pool)
         {
             Pool = pool;
             CurrentState = new TypingState(this);
-            Mementos = new List<string>();
+            History = new List<string>();
         }
 
-        public void SetState(AbstractState state)
+        public void SetState(State state)
         {
             CurrentState = state;
         }
 
-        public void Request()
-        {
-            CurrentState.Handle();
-        }
-
         public void AddMemento(string input)
         {
-            Mementos.Add(input);
+            History.Add(input);
         }
     }
 }

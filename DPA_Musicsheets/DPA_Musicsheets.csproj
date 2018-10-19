@@ -107,8 +107,8 @@
     <Compile Include="Builders\View\LilypondViewBuilder.cs" />
     <Compile Include="Builders\View\PsamViewBuilder.cs" />
     <Compile Include="Managers\View\LilypondViewManager.cs" />
-    <Compile Include="States\AbstractState.cs" />
-    <Compile Include="States\Context.cs" />
+    <Compile Include="States\State.cs" />
+    <Compile Include="States\EditorContext.cs" />
     <Compile Include="States\IdleState.cs" />
     <Compile Include="States\GeneratingState.cs" />
     <Compile Include="States\TypingState.cs" />

@@ -16,7 +16,7 @@ namespace DPA_Musicsheets.ViewModels
 {
     public class LilypondViewModel : ViewModelBase, IView<string>
     {
-        private Context Context { get; set; }
+        private EditorContext Context { get; set; }
         private MusicLoader _musicLoader;
         private MainViewModel _mainViewModel { get; set; }
 
@@ -51,7 +51,7 @@ namespace DPA_Musicsheets.ViewModels
         private static int MILLISECONDS_BEFORE_CHANGE_HANDLED = 1500;
         private bool _waitingForRender = false;
 
-        public LilypondViewModel(IViewManagerPool pool, Context context)
+        public LilypondViewModel(IViewManagerPool pool, EditorContext context)
         {
             Context = context;
 

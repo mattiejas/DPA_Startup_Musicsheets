@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace DPA_Musicsheets.States
 {
-    public abstract class AbstractState
+    public abstract class State
     {
-        public Context Context { get; set; }
+        public EditorContext Context { get; set; }
 
-        public AbstractState(Context context)
+        protected State(EditorContext context)
         {
             Context = context;
         }

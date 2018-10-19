@@ -30,6 +30,7 @@ namespace DPA_Musicsheets.Strategies
             }
 
             _loader.Load(sb.ToString());
+            _loader.Apply();
         }
     }
 }

@@ -5,26 +5,27 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Common.Interfaces;
+using DPA_Musicsheets.Managers.View;
 
 namespace DPA_Musicsheets.States
 {
-    class GeneratingState : AbstractState
+    public class GeneratingState : State
     {
-        public GeneratingState(Context context) : base(context)
+        public GeneratingState(EditorContext context) : base(context)
         {
         }
 
         public override void Handle()
         {
-            if (Context.Mementos.Last() != Context.CurrentEditorContent)
+            if (Context.History.Last() != Context.CurrentEditorContent)
             {
-                try
+                var loader = new LilypondLoadStrategy(Context.Pool);
+                var success = loader.Load(Context.CurrentEditorContent);
+                if (success)
                 {
-                    new LilypondLoadStrategy(Context.Pool).Load(Context.CurrentEditorContent);
+                    loader.Apply(vm => !(vm is LilypondViewManager));
                     Context.AddMemento(Context.CurrentEditorContent);
-                } catch (Exception e)
-                {
-                    Debug.WriteLine(e.Message);
                 }
             }
 

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace DPA_Musicsheets.States
 {
-    public class TypingState : AbstractState
+    public class TypingState : State
     {
-        public TypingState(Context context) : base(context)
+        public TypingState(EditorContext context) : base(context)
         {
 
         }
