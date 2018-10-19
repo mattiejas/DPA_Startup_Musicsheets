@@ -5,33 +5,33 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Windows.Threading;
 
 namespace DPA_Musicsheets.States
 {
     public class IdleState : AbstractState
     {
-        private Timer _timer;
+        private DispatcherTimer _timer;
 
         public IdleState(Context context) : base(context)
         {
-            _timer = new Timer
-            {
-                Interval = 2000,
-                AutoReset = true,
-                Enabled = true,
-            };
-            _timer.Elapsed += OnTimedEvent;
+            _timer = new DispatcherTimer();
+            _timer.Tick += new EventHandler(OnTimedEvent);
+            _timer.Interval = new TimeSpan(0, 0, 3);
+            _timer.Start();
         }
 
-        private void OnTimedEvent(Object source, ElapsedEventArgs e)
+        private void OnTimedEvent(Object source, EventArgs e)
         {
             Context.SetState(new GeneratingState(Context));
             Context.CurrentState.Handle();
+
+            _timer.Stop();
         }
 
         public override void Handle()
         {
-            _timer.Dispose();
+            _timer.Stop();
             Context.SetState(new TypingState(Context));
         }
     }

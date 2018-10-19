@@ -41,6 +41,7 @@ namespace DPA_Musicsheets.ViewModels
                     _previousText = _text;
                 }
                 _text = value;
+                Context.CurrentEditorContent = value;
                 RaisePropertyChanged(() => LilypondText);
             }
         }
@@ -63,6 +64,8 @@ namespace DPA_Musicsheets.ViewModels
         public void Load(string data)
         {
             _text = data;
+            Context.CurrentEditorContent = _text;
+            Context.AddMemento(_text);
             LilypondTextLoaded(_text);
         }
 
@@ -82,6 +85,7 @@ namespace DPA_Musicsheets.ViewModels
             if (!_textChangedByLoad)
             {
                 Context.CurrentState.Handle();
+                Context.CurrentEditorContent = _text;
 
                 _waitingForRender = true;
                 _lastChange = DateTime.Now;
@@ -97,6 +101,8 @@ namespace DPA_Musicsheets.ViewModels
 
                         // _musicLoader.LoadLilypondIntoWpfStaffsAndMidi(LilypondText);
                         //_mainViewModel.CurrentState = "";
+
+                        
                     }
                 }, TaskScheduler.FromCurrentSynchronizationContext()); // Request from main thread.
 

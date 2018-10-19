@@ -15,7 +15,6 @@ namespace DPA_Musicsheets.States
 
         public override void Handle()
         {
-            // throw new NotImplementedException();
         }
     }
 }

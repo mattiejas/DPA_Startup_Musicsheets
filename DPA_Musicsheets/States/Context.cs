@@ -12,10 +12,14 @@ namespace DPA_Musicsheets.States
         public readonly IViewManagerPool Pool;
         public AbstractState CurrentState { get; private set; }
 
+        public List<string> Mementos { get; set; }
+        public string CurrentEditorContent { get; set; }
+
         public Context(IViewManagerPool pool)
         {
             Pool = pool;
             CurrentState = new TypingState(this);
+            Mementos = new List<string>();
         }
 
         public void SetState(AbstractState state)
@@ -26,6 +30,11 @@ namespace DPA_Musicsheets.States
         public void Request()
         {
             CurrentState.Handle();
+        }
+
+        public void AddMemento(string input)
+        {
+            Mementos.Add(input);
         }
     }
 }
