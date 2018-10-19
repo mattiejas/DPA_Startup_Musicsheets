@@ -2,6 +2,7 @@
 using Common.Interfaces;
 using DPA_Musicsheets.Managers;
 using DPA_Musicsheets.Managers.View;
+using DPA_Musicsheets.States;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Ioc;
 using Microsoft.Practices.ServiceLocation;
@@ -24,6 +25,7 @@ namespace DPA_Musicsheets.ViewModels
             SimpleIoc.Default.Register<LilypondViewModel>();
             SimpleIoc.Default.Register<StaffsViewModel>();
             SimpleIoc.Default.Register<MidiPlayerViewModel>();
+            SimpleIoc.Default.Register<Context>();
         }
 
         public MainViewModel MainViewModel => ServiceLocator.Current.GetInstance<MainViewModel>();

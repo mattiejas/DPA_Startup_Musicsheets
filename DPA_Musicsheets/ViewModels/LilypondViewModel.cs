@@ -10,11 +10,13 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Common.Interfaces;
 using DPA_Musicsheets.Managers.View;
+using DPA_Musicsheets.States;
 
 namespace DPA_Musicsheets.ViewModels
 {
     public class LilypondViewModel : ViewModelBase, IView<string>
     {
+        private Context Context { get; set; }
         private MusicLoader _musicLoader;
         private MainViewModel _mainViewModel { get; set; }
 
@@ -48,8 +50,10 @@ namespace DPA_Musicsheets.ViewModels
         private static int MILLISECONDS_BEFORE_CHANGE_HANDLED = 1500;
         private bool _waitingForRender = false;
 
-        public LilypondViewModel(IViewManagerPool pool)
+        public LilypondViewModel(IViewManagerPool pool, Context context)
         {
+            Context = context;
+
             var viewManager = pool.GetInstance<LilypondViewManager>();
             viewManager.RegisterViewModel(this);
 
@@ -77,6 +81,8 @@ namespace DPA_Musicsheets.ViewModels
             // If we were typing, we need to do things.
             if (!_textChangedByLoad)
             {
+                Context.CurrentState.Handle();
+
                 _waitingForRender = true;
                 _lastChange = DateTime.Now;
 
@@ -89,10 +95,12 @@ namespace DPA_Musicsheets.ViewModels
                         _waitingForRender = false;
                         UndoCommand.RaiseCanExecuteChanged();
 
-                        _musicLoader.LoadLilypondIntoWpfStaffsAndMidi(LilypondText);
+                        // _musicLoader.LoadLilypondIntoWpfStaffsAndMidi(LilypondText);
                         //_mainViewModel.CurrentState = "";
                     }
                 }, TaskScheduler.FromCurrentSynchronizationContext()); // Request from main thread.
+
+                Context.SetState(new IdleState(Context));
             }
         });
 
@@ -138,6 +146,7 @@ namespace DPA_Musicsheets.ViewModels
                 }
             }
         });
+
         #endregion Commands for buttons like Undo, Redo and SaveAs
     }
 }
