@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Common.Definitions;
 using Common.Interfaces;
 using Common.Models;
 using Common.Utils;
-
 using Repeat = LilypondInterpreter.Tokens.Repeat;
 
 namespace LilypondInterpreter
 {
     public class TokenScoreBuilder : IScoreBuilder
     {
-        private readonly List<string> _notes = new List<string> { "c", "d", "e", "f", "g", "a", "b" };
-        private readonly List<string> _crosses = new List<string> { "cis", "dis", "fis", "gis", "ais" };
-        private readonly List<string> _flats = new List<string> { "des", "es", "ges", "as", "bes" };
+        private readonly List<string> _notes = new List<string> {"c", "d", "e", "f", "g", "a", "b"};
+        private readonly List<string> _crosses = new List<string> {"cis", "dis", "fis", "gis", "ais"};
+        private readonly List<string> _flats = new List<string> {"des", "es", "ges", "as", "bes"};
 
         private readonly Score _score;
 
@@ -30,8 +30,9 @@ namespace LilypondInterpreter
         public TokenScoreBuilder()
         {
             _currentGroup = new SymbolGroup();
-            _score = new Score { SymbolGroups = { _currentGroup } };
-            _relativeOctave = Common.Definitions.Octaves.Three;
+            _score = new Score {SymbolGroups = {_currentGroup}};
+            _relativeOctave = Octaves.Three;
+            _previous = new Common.Models.Note(Names.C, _relativeOctave);
         }
 
         public Score Build()
@@ -101,7 +102,7 @@ namespace LilypondInterpreter
             if (!int.TryParse(values[0], out var ticks) || !int.TryParse(values[1], out var beat)) return;
 
             _lastTimeSignature = new TimeSignature
-            { Ticks = ticks, Beat = DurationUtils.GetClosestDuration(beat) };
+                {Ticks = ticks, Beat = DurationUtils.GetClosestDuration(beat)};
 
             if (_currentGroup.Symbols.Count == 0) // still empty
             {
@@ -112,28 +113,40 @@ namespace LilypondInterpreter
             CreateNewSymbolGroup();
         }
 
-        private int AlterOctave(string value)
+        private void AlterOctave(string value)
         {
+            var name = Regex.Replace(value, @"[\d',.]", string.Empty)[0];
+            switch (_previous.Name)
+            {
+                case Names.C when name == 'g' || name == 'a'  || name == 'b':
+                case Names.D when name == 'a' || name == 'b':
+                case Names.E when name == 'b':
+                    _relativeOctave--;
+                    break;
+                case Names.G when name == 'c':
+                case Names.A when name == 'c' || name == 'd':
+                case Names.B when name == 'c' || name == 'd' || name == 'e':
+                    _relativeOctave++;
+                    break;
+            }
+
             var higher = value.ToCharArray().Count(a => a == '\'');
             if (higher > 0)
             {
                 _relativeOctave += higher;
-                return higher;
             }
 
             var lower = value.ToCharArray().Count(c => c == ',');
             if (lower > 0)
             {
                 _relativeOctave -= lower;
-                return -lower;
             }
-
-            return 0;
         }
 
         private void SetRelative(string value)
         {
             AlterOctave(value);
+            _previous = new Common.Models.Note(Names.C, _relativeOctave);
         }
 
         private void SetClef(string value)
@@ -159,15 +172,9 @@ namespace LilypondInterpreter
             int.TryParse(Regex.Replace(note.Value, @"[A-Za-z',.]", string.Empty), out var duration);
 
             AlterOctave(note.Value);
-            var octave = _relativeOctave;
-            if (_previous != null)
-            {
-                octave = _previous.Octave;
-            }
 
             // set previous to the new note
-            _previous = new Common.Models.Note((Common.Definitions.Names)name[0], octave,
-                    DurationUtils.GetClosestDuration(duration));
+            _previous = new Common.Models.Note((Names) name[0], _relativeOctave, DurationUtils.GetClosestDuration(duration));
 
             if (name.EndsWith("es") || name.EndsWith("as"))
             {
