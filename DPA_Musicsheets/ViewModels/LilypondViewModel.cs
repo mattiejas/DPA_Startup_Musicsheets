@@ -97,21 +97,6 @@ namespace DPA_Musicsheets.ViewModels
                 _waitingForRender = true;
                 _lastChange = DateTime.Now;
 
-                //_mainViewModel.CurrentState = "Rendering...";
-                /*
-                Task.Delay(MILLISECONDS_BEFORE_CHANGE_HANDLED).ContinueWith((task) =>
-                {
-                    if ((DateTime.Now - _lastChange).TotalMilliseconds >= MILLISECONDS_BEFORE_CHANGE_HANDLED)
-                    {
-                        _waitingForRender = false;
-                        UndoCommand.RaiseCanExecuteChanged();
-
-                        // _musicLoader.LoadLilypondIntoWpfStaffsAndMidi(LilypondText);
-                        //_mainViewModel.CurrentState = "";
-                    }
-                }, TaskScheduler.FromCurrentSynchronizationContext()); // Request from main thread.
-                */
-
                 _context.SetState(new IdleState(_context));
             }
         });
@@ -122,12 +107,6 @@ namespace DPA_Musicsheets.ViewModels
             _context.Caretaker.Undo();
             _context.SetState(new GeneratingState(_context));
             _context.CurrentState.Handle();
-
-            /*
-            _nextText = LilypondText;
-            LilypondText = _previousText;
-            _previousText = null;
-            */
         }, () => _context.Caretaker.IsUndoable());
 
         public RelayCommand RedoCommand => new RelayCommand(() =>
