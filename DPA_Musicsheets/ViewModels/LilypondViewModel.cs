@@ -18,13 +18,9 @@ namespace DPA_Musicsheets.ViewModels
 {
     public class LilypondViewModel : ViewModelBase, IView<string>
     {
+        private MusicLoader _musicLoader { get; set; }
         private EditorContext _context { get; set; }
-        private MusicLoader _musicLoader;
         private MainViewModel _mainViewModel { get; set; }
-
-        private string _text;
-        private string _previousText;
-        private string _nextText;
 
         /// <summary>
         /// This text will be in the textbox.
@@ -34,24 +30,14 @@ namespace DPA_Musicsheets.ViewModels
         {
             get
             {
-                return _text;
+                return _context.CurrentEditorContent;
             }
             set
             {
-                if (!_waitingForRender && !_textChangedByLoad)
-                {
-                    _previousText = _text;
-                }
-                _text = value;
                 _context.CurrentEditorContent = value;
                 RaisePropertyChanged(() => LilypondText);
             }
         }
-
-        private bool _textChangedByLoad = false;
-        private DateTime _lastChange;
-        // private static int MILLISECONDS_BEFORE_CHANGE_HANDLED = 1500;
-        private bool _waitingForRender = false;
 
         public LilypondViewModel(IViewManagerPool pool, EditorContext context)
         {
@@ -60,27 +46,19 @@ namespace DPA_Musicsheets.ViewModels
             var viewManager = pool.GetInstance<LilypondViewManager>();
             viewManager.RegisterViewModel(this);
 
-            _text = "Lilypond will appear here";
+            _context.CurrentEditorContent = "Lilypond will appear here";
         }
 
         public void Load(string data)
         {
-            _text = data;
-            _context.CurrentEditorContent = _text;
+            _context.CurrentEditorContent = data;
 
             if (!_context.IsRestored)
             {
                 _context.Caretaker.Backup();
             }
 
-            LilypondTextLoaded(_text);
-        }
-
-        public void LilypondTextLoaded(string text)
-        {
-            _textChangedByLoad = true;
-            LilypondText = _previousText = text;
-            _textChangedByLoad = false;
+            LilypondText = _context.CurrentEditorContent;
         }
 
         /// <summary>
@@ -88,17 +66,8 @@ namespace DPA_Musicsheets.ViewModels
         /// </summary>
         public ICommand TextChangedCommand => new RelayCommand<TextChangedEventArgs>((args) =>
         {
-            // If we were typing, we need to do things.
-            if (!_textChangedByLoad)
-            {
-                _context.CurrentState.Handle();
-                _context.CurrentEditorContent = _text;
-
-                _waitingForRender = true;
-                _lastChange = DateTime.Now;
-
-                _context.SetState(new IdleState(_context));
-            }
+            _context.CurrentState.Handle();
+            _context.SetState(new IdleState(_context));
         });
 
         #region Commands for buttons like Undo, Redo and SaveAs
@@ -114,12 +83,6 @@ namespace DPA_Musicsheets.ViewModels
             _context.Caretaker.Redo();
             _context.SetState(new GeneratingState(_context));
             _context.CurrentState.Handle();
-            /*
-            _previousText = LilypondText;
-            LilypondText = _nextText;
-            _nextText = null;
-            RedoCommand.RaiseCanExecuteChanged();
-            */
         }, () => _context.Caretaker.IsRedoable());
 
         public ICommand SaveAsCommand => new RelayCommand(() =>
