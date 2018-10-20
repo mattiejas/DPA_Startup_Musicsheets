@@ -27,27 +27,11 @@ namespace DPA_Musicsheets.Managers.View
             if (_view == null) throw new ViewModelNotFoundException();
 
             _builder.Reset(); // reset builder so symbols don't stack
-
             _builder.AddClef(score.Clef);
-            _builder.AddTimeSignature(score.SymbolGroups[0].Meter);
 
             foreach (var symbolGroup in score.SymbolGroups)
             {
-                _builder.AddTimeSignature(symbolGroup.Meter);
-                _builder.AddTempo(symbolGroup.Tempo);
-
-                foreach (var symbol in symbolGroup.Symbols)
-                {
-                    if (symbol is Note note)
-                    {
-                        _builder.AddNote(note);
-                    }
-
-                    if (symbol is Rest rest)
-                    {
-                        _builder.AddRest(rest);
-                    }
-                }
+                _builder.AddSymbolGroup(symbolGroup);
             }
 
             _view.Load(_builder.Build());

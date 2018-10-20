@@ -57,7 +57,7 @@ namespace DPA_Musicsheets.Builders.View
             _meter = null;
         }
 
-        public void AddNote(Note note)
+        private void AddNote(Note note)
         {
             // set modifier; negative for flats, positive for sharp
             int modifier = 0;
@@ -231,7 +231,7 @@ namespace DPA_Musicsheets.Builders.View
             }
         }
 
-        public void AddRest(Rest rest)
+        private void AddRest(Rest rest)
         {
             var psamRest = new PSAMRest((MusicalSymbolDuration)rest.Duration);
             _notes.Add(psamRest);
@@ -258,11 +258,7 @@ namespace DPA_Musicsheets.Builders.View
             }
         }
 
-        public void AddTempo(int tempo)
-        {
-        }
-
-        public void AddTimeSignature(TimeSignature ts)
+        private void AddTimeSignature(TimeSignature ts)
         {
             if (_buffer.Count > 0) FlushBuffer();
             if (_notes.Count > 0) Build();
@@ -320,6 +316,62 @@ namespace DPA_Musicsheets.Builders.View
 
             _notes = new List<MusicalSymbol>();
             return _symbols;
+        }
+
+        public void AddSymbolGroup(SymbolGroup group)
+        {
+            AddTimeSignature(group.Meter);
+
+            if (group.Repeat != null)
+            {
+                _symbols.Add(new Barline() { RepeatSign = RepeatSignType.Forward });
+            }
+
+            foreach (var symbol in group.Symbols)
+            {
+                if (symbol is Note note)
+                {
+                    AddNote(note);
+                }
+
+                if (symbol is Rest rest)
+                {
+                    AddRest(rest);
+                }
+            }
+
+            if (_buffer.Count > 0) FlushBuffer();
+            if (_notes.Count > 0) Build();
+
+            if (group.Repeat != null)
+            {
+                AddRepeat(group.Repeat);
+            }
+        }
+
+        private void AddRepeat(Repeat repeat)
+        {
+            AddSymbolGroup(repeat.Alternatives.First());
+
+            if (_symbols.Last() is Barline)
+            {
+                _symbols.RemoveAt(_symbols.Count - 1);
+            }
+
+            if (repeat.Alternatives.Count > 1)
+            {
+                var index = _symbols.FindLastIndex(b => b is Barline);
+                _symbols[index] = new Barline { AlternateRepeatGroup = 1 };
+                _symbols.Add(new Barline() { RepeatSign = RepeatSignType.Backward, AlternateRepeatGroup = 2 });
+            } else
+            {
+                _symbols.Add(new Barline() { RepeatSign = RepeatSignType.Backward });
+            }
+
+            foreach (var alt in repeat.Alternatives.GetRange(1, repeat.Alternatives.Count - 1))
+            {
+                AddSymbolGroup(alt);
+            }
         }
     }
 }

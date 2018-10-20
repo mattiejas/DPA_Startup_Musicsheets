@@ -53,7 +53,7 @@ namespace DPA_Musicsheets.Builders.View
             _lastIsKeyword = true;
         }
 
-        public void AddTempo(int tempo)
+        private void AddTempo(int tempo)
         {
             if (_lastTempo != tempo)
             {
@@ -101,7 +101,7 @@ namespace DPA_Musicsheets.Builders.View
             return _previousNote.Octave;
         }
 
-        public void AddNote(Note note)
+        private void AddNote(Note note)
         {
             if (_relative == null)
             {
@@ -123,7 +123,7 @@ namespace DPA_Musicsheets.Builders.View
             SetBarlineProgress((double) note.Duration, note.Dots);
         }
 
-        public void AddRest(Rest rest)
+        private void AddRest(Rest rest)
         {
             _output += $"r{(int) rest.Duration}{new string('.', rest.Dots)} ";
             _lastIsKeyword = false;
@@ -131,7 +131,7 @@ namespace DPA_Musicsheets.Builders.View
             SetBarlineProgress((double) rest.Duration, rest.Dots);
         }
 
-        public void SetBarlineProgress(double duration, int dots)
+        private void SetBarlineProgress(double duration, int dots)
         {
             _progress -= DurationUtils.GetProgressDuration((double) _lastTimeSignature.Beat / duration, dots);
 
@@ -142,7 +142,7 @@ namespace DPA_Musicsheets.Builders.View
             }
         }
 
-        public void AddTimeSignature(TimeSignature timeSignature)
+        private void AddTimeSignature(TimeSignature timeSignature)
         {
             if (timeSignature == _lastTimeSignature) return;
             if (!_lastIsKeyword)
@@ -177,6 +177,35 @@ namespace DPA_Musicsheets.Builders.View
         public void Reset()
         {
             Init();
+        }
+
+        public void AddSymbolGroup(SymbolGroup group)
+        {
+            AddTimeSignature(group.Meter);
+            AddTempo(group.Tempo);
+
+            foreach (var symbol in group.Symbols)
+            {
+                if (symbol is Note note)
+                {
+                    AddNote(note);
+                }
+
+                if (symbol is Rest rest)
+                {
+                    AddRest(rest);
+                }
+            }
+
+            if (group.Repeat != null)
+            {
+                AddRepeat(group.Repeat);
+            }
+        }
+
+        private void AddRepeat(Repeat repeat)
+        {
+            _output += $"\\repeat yay";
         }
     }
 }
