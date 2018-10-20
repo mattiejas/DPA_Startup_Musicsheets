@@ -18,14 +18,22 @@ namespace DPA_Musicsheets.States
 
         public override void Handle()
         {
-            if (Context.History.Last() != Context.CurrentEditorContent)
+            if (Context.IsRestored || Context.Caretaker.Peek().GetState() != Context.CurrentEditorContent)
             {
                 var loader = new LilypondLoadStrategy(Context.Pool);
                 var success = loader.Load(Context.CurrentEditorContent);
                 if (success)
                 {
-                    loader.Apply(vm => !(vm is LilypondViewManager));
-                    Context.AddMemento(Context.CurrentEditorContent);
+                    if (Context.IsRestored)
+                    {
+                        loader.Apply();
+                        Context.IsRestored = false;
+                    }
+                    else
+                    {
+                        loader.Apply(vm => !(vm is LilypondViewManager));
+                        Context.Caretaker.Backup();
+                    }
                 }
             }
 

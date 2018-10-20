@@ -107,6 +107,10 @@
     <Compile Include="Builders\View\LilypondViewBuilder.cs" />
     <Compile Include="Builders\View\PsamViewBuilder.cs" />
     <Compile Include="Managers\View\LilypondViewManager.cs" />
+    <Compile Include="Mementos\Caretaker.cs" />
+    <Compile Include="Mementos\ConcreteMemento.cs" />
+    <Compile Include="Mementos\IMemento.cs" />
+    <Compile Include="Mementos\IOrginator.cs" />
     <Compile Include="States\State.cs" />
     <Compile Include="States\EditorContext.cs" />
     <Compile Include="States\IdleState.cs" />
