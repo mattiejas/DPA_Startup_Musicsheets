@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Common.Models;
+using DPA_Musicsheets.Exceptions;
 
 namespace DPA_Musicsheets.Strategies
 {
@@ -21,26 +22,47 @@ namespace DPA_Musicsheets.Strategies
 
         public bool Load(string input)
         {
-            var score = new LilypondScoreBuilder(input).Build();
-            if (score == null) return false;
+            try
+            {
+                var score = new LilypondScoreBuilder(input).Build();
+                if (score == null) return false;
 
-            _score = score;
-            return true;
+                _score = score;
+                return true;
+            }
+            catch (Exception e)
+            {
+                throw new InvalidScoreException("Couldn't generate score", e);
+            }
         }
 
         public void Apply()
         {
-            foreach (var viewManager in _pool)
+            try
             {
-                viewManager.Load(_score);
+                foreach (var viewManager in _pool)
+                {
+                    viewManager.Load(_score);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new InvalidScoreException("Couldn't load score", e);
             }
         }
 
         public void Apply(Func<IViewManager, bool> match)
         {
-            foreach (var viewManager in _pool.Where(match))
+            try
             {
-                viewManager.Load(_score);
+                foreach (var viewManager in _pool.Where(match))
+                {
+                    viewManager.Load(_score);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new InvalidScoreException("Couldn't load score", e);
             }
         }
     }

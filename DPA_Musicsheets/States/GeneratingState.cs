@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Common.Interfaces;
 using DPA_Musicsheets.Managers.View;
+using DPA_Musicsheets.Exceptions;
 
 namespace DPA_Musicsheets.States
 {
@@ -18,15 +19,21 @@ namespace DPA_Musicsheets.States
 
         public override void Handle()
         {
-            if (Context.History.Last() != Context.CurrentEditorContent)
+            try
             {
-                var loader = new LilypondLoadStrategy(Context.Pool);
-                var success = loader.Load(Context.CurrentEditorContent);
-                if (success)
+                if (Context.History.Last() != Context.CurrentEditorContent)
                 {
-                    loader.Apply(vm => !(vm is LilypondViewManager));
-                    Context.AddMemento(Context.CurrentEditorContent);
+                    var loader = new LilypondLoadStrategy(Context.Pool);
+                    var success = loader.Load(Context.CurrentEditorContent);
+                    if (success)
+                    {
+                        loader.Apply(vm => !(vm is LilypondViewManager));
+                        Context.AddMemento(Context.CurrentEditorContent);
+                    }
                 }
+            } catch(InvalidScoreException e)
+            {
+                Debug.WriteLine(e.Message);
             }
 
             Context.SetState(new IdleState(Context));

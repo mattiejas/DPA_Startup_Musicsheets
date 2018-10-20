@@ -184,6 +184,13 @@ namespace DPA_Musicsheets.Builders.View
             AddTimeSignature(group.Meter);
             AddTempo(group.Tempo);
 
+            if (group.Repeat != null)
+            {
+                _scopes++;
+                _output = _output.TrimEnd(' ', '\n', '|');
+                _output += $"\n{new string(' ', _scopes * SPACES_IN_TAB)}\\repeat volta {group.Repeat.Times} {{\n{new string(' ', _scopes * SPACES_IN_TAB)}";
+            }
+
             foreach (var symbol in group.Symbols)
             {
                 if (symbol is Note note)
@@ -199,13 +206,35 @@ namespace DPA_Musicsheets.Builders.View
 
             if (group.Repeat != null)
             {
+                _output = _output.TrimEnd(' ', '\n', '|');
+                _output += $"\r{new string(' ', --_scopes * SPACES_IN_TAB)}}}\n{new string(' ', _scopes * SPACES_IN_TAB)}";
+            }
+
+            if (group.Repeat != null)
+            {
                 AddRepeat(group.Repeat);
             }
         }
 
         private void AddRepeat(Repeat repeat)
         {
-            _output += $"\\repeat yay";
+            _scopes++;
+            _output += $"\\alternative {{\n{new string(' ', _scopes * SPACES_IN_TAB)}";
+
+            foreach (var alt in repeat.Alternatives)
+            {
+                _scopes++;
+                _output += "{ ";
+                AddSymbolGroup(alt);
+
+                _scopes--;
+                _output = _output.TrimEnd(' ', '\n', '|');
+                _output += $" }}\n{new string(' ', _scopes * SPACES_IN_TAB)}";
+            }
+
+            _scopes--;
+            _output = _output.TrimEnd(' ', '\n', '|');
+            _output += $"\r}}\n{new string(' ', _scopes * SPACES_IN_TAB)}";
         }
     }
 }

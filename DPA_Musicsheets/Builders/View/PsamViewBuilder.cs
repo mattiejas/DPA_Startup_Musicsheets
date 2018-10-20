@@ -363,14 +363,14 @@ namespace DPA_Musicsheets.Builders.View
                 var index = _symbols.FindLastIndex(b => b is Barline);
                 _symbols[index] = new Barline { AlternateRepeatGroup = 1 };
                 _symbols.Add(new Barline() { RepeatSign = RepeatSignType.Backward, AlternateRepeatGroup = 2 });
+
+                foreach (var alt in repeat.Alternatives.GetRange(1, repeat.Alternatives.Count - 1))
+                {
+                    AddSymbolGroup(alt);
+                }
             } else
             {
                 _symbols.Add(new Barline() { RepeatSign = RepeatSignType.Backward });
-            }
-
-            foreach (var alt in repeat.Alternatives.GetRange(1, repeat.Alternatives.Count - 1))
-            {
-                AddSymbolGroup(alt);
             }
         }
     }
