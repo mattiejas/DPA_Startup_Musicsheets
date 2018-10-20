@@ -106,6 +106,14 @@
     <Compile Include="Builders\Score\LilypondScoreBuilder.cs" />
     <Compile Include="Builders\View\LilypondViewBuilder.cs" />
     <Compile Include="Builders\View\PsamViewBuilder.cs" />
+    <Compile Include="Commands\AbstractHandler.cs" />
+    <Compile Include="Commands\Actions\LoadFileCommand.cs" />
+    <Compile Include="Commands\Actions\OpenFileCommand.cs" />
+    <Compile Include="Commands\Handlers\OpenFileHandler.cs" />
+    <Compile Include="Commands\ICommand.cs" />
+    <Compile Include="Commands\IHandler.cs" />
+    <Compile Include="Commands\Invoker.cs" />
+    <Compile Include="Commands\Request.cs" />
     <Compile Include="Managers\View\LilypondViewManager.cs" />
     <Compile Include="States\State.cs" />
     <Compile Include="States\EditorContext.cs" />

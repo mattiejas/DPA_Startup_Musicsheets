@@ -27,7 +27,7 @@ namespace DPA_Musicsheets.States
                     var success = loader.Load(Context.CurrentEditorContent);
                     if (success)
                     {
-                        loader.Apply(vm => !(vm is LilypondViewManager));
+                        loader.Apply();
                         Context.AddMemento(Context.CurrentEditorContent);
                     }
                 }
