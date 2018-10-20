@@ -17,7 +17,6 @@ namespace DPA_Musicsheets.Builders.View
         private bool _lastIsKeyword;
         private TimeSignature _lastTimeSignature;
         private double _progress;
-        private Octaves _previousOctave;
         private int _lastTempo;
         private Note _previousNote;
 
@@ -34,10 +33,9 @@ namespace DPA_Musicsheets.Builders.View
         {
             _scopes = 1;
             _output = new string(' ', _scopes * SPACES_IN_TAB);
-            _previousOctave = Octaves.Three;
             _lastIsKeyword = true;
             _lastTempo = 0;
-            _previousNote = null;
+            _previousNote = new Note(Names.C, Octaves.Three);
             _relative = null;
         }
 
@@ -105,10 +103,9 @@ namespace DPA_Musicsheets.Builders.View
         {
             if (_relative == null)
             {
-                var diff = note.Octave - _previousOctave;
+                var diff = note.Octave - GetOctave(note);
                 _relative = $"\\relative c{(diff > 0 ? new string('\'', diff) : new string(',', -diff))} {{\n";
-                _previousOctave = note.Octave;
-                _previousNote = new Note(Names.C, _previousOctave);
+                _previousNote = new Note(Names.C, Octaves.Three + diff);
             }
 
             var difference = note.Octave - GetOctave(note);
