@@ -111,11 +111,16 @@ namespace DPA_Musicsheets.ViewModels
 
         public RelayCommand RedoCommand => new RelayCommand(() =>
         {
+            _context.Caretaker.Redo();
+            _context.SetState(new GeneratingState(_context));
+            _context.CurrentState.Handle();
+            /*
             _previousText = LilypondText;
             LilypondText = _nextText;
             _nextText = null;
             RedoCommand.RaiseCanExecuteChanged();
-        }, () => _nextText != null && _nextText != LilypondText);
+            */
+        }, () => _context.Caretaker.IsRedoable());
 
         public ICommand SaveAsCommand => new RelayCommand(() =>
         {

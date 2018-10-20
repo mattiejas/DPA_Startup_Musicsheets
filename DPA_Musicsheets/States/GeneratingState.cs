@@ -35,6 +35,7 @@ namespace DPA_Musicsheets.States
                         else
                         {
                             loader.Apply(vm => !(vm is LilypondViewManager));
+                            Context.Caretaker.FlushRedos();
                             Context.Caretaker.Backup();
                         }
                     }

@@ -1,4 +1,5 @@
-﻿using Common.Interfaces;
+﻿using Common.Exceptions;
+using Common.Interfaces;
 using DPA_Musicsheets.Mementos;
 using System;
 using System.Collections.Generic;
@@ -38,7 +39,7 @@ namespace DPA_Musicsheets.States
         {
             if (!(memento is ConcreteMemento))
             {
-                throw new Exception("Unknown memento class " + memento.ToString());
+                throw new InvalidMementoException();
             }
 
             this.IsRestored = true;
