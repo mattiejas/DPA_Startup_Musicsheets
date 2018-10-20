@@ -11,12 +11,14 @@ using System.Windows.Input;
 using Common.Interfaces;
 using DPA_Musicsheets.Managers.View;
 using DPA_Musicsheets.States;
+using DPA_Musicsheets.Mementos;
+using System.Diagnostics;
 
 namespace DPA_Musicsheets.ViewModels
 {
     public class LilypondViewModel : ViewModelBase, IView<string>
     {
-        private EditorContext Context { get; set; }
+        private EditorContext _context { get; set; }
         private MusicLoader _musicLoader;
         private MainViewModel _mainViewModel { get; set; }
 
@@ -41,19 +43,19 @@ namespace DPA_Musicsheets.ViewModels
                     _previousText = _text;
                 }
                 _text = value;
-                Context.CurrentEditorContent = value;
+                _context.CurrentEditorContent = value;
                 RaisePropertyChanged(() => LilypondText);
             }
         }
 
         private bool _textChangedByLoad = false;
         private DateTime _lastChange;
-        private static int MILLISECONDS_BEFORE_CHANGE_HANDLED = 1500;
+        // private static int MILLISECONDS_BEFORE_CHANGE_HANDLED = 1500;
         private bool _waitingForRender = false;
 
         public LilypondViewModel(IViewManagerPool pool, EditorContext context)
         {
-            Context = context;
+            _context = context;
 
             var viewManager = pool.GetInstance<LilypondViewManager>();
             viewManager.RegisterViewModel(this);
@@ -64,8 +66,13 @@ namespace DPA_Musicsheets.ViewModels
         public void Load(string data)
         {
             _text = data;
-            Context.CurrentEditorContent = _text;
-            Context.AddMemento(_text);
+            _context.CurrentEditorContent = _text;
+
+            if (!_context.IsRestored)
+            {
+                _context.Caretaker.Backup();
+            }
+
             LilypondTextLoaded(_text);
         }
 
@@ -84,47 +91,36 @@ namespace DPA_Musicsheets.ViewModels
             // If we were typing, we need to do things.
             if (!_textChangedByLoad)
             {
-                Context.CurrentState.Handle();
-                Context.CurrentEditorContent = _text;
+                _context.CurrentState.Handle();
+                _context.CurrentEditorContent = _text;
 
                 _waitingForRender = true;
                 _lastChange = DateTime.Now;
 
-                //_mainViewModel.CurrentState = "Rendering...";
-
-                Task.Delay(MILLISECONDS_BEFORE_CHANGE_HANDLED).ContinueWith((task) =>
-                {
-                    if ((DateTime.Now - _lastChange).TotalMilliseconds >= MILLISECONDS_BEFORE_CHANGE_HANDLED)
-                    {
-                        _waitingForRender = false;
-                        UndoCommand.RaiseCanExecuteChanged();
-
-                        // _musicLoader.LoadLilypondIntoWpfStaffsAndMidi(LilypondText);
-                        //_mainViewModel.CurrentState = "";
-
-                        
-                    }
-                }, TaskScheduler.FromCurrentSynchronizationContext()); // Request from main thread.
-
-                Context.SetState(new IdleState(Context));
+                _context.SetState(new IdleState(_context));
             }
         });
 
         #region Commands for buttons like Undo, Redo and SaveAs
         public RelayCommand UndoCommand => new RelayCommand(() =>
         {
-            _nextText = LilypondText;
-            LilypondText = _previousText;
-            _previousText = null;
-        }, () => _previousText != null && _previousText != LilypondText);
+            _context.Caretaker.Undo();
+            _context.SetState(new GeneratingState(_context));
+            _context.CurrentState.Handle();
+        }, () => _context.Caretaker.IsUndoable());
 
         public RelayCommand RedoCommand => new RelayCommand(() =>
         {
+            _context.Caretaker.Redo();
+            _context.SetState(new GeneratingState(_context));
+            _context.CurrentState.Handle();
+            /*
             _previousText = LilypondText;
             LilypondText = _nextText;
             _nextText = null;
             RedoCommand.RaiseCanExecuteChanged();
-        }, () => _nextText != null && _nextText != LilypondText);
+            */
+        }, () => _context.Caretaker.IsRedoable());
 
         public ICommand SaveAsCommand => new RelayCommand(() =>
         {

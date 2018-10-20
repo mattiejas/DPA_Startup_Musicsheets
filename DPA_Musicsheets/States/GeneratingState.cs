@@ -19,23 +19,32 @@ namespace DPA_Musicsheets.States
 
         public override void Handle()
         {
-            try
+            if (Context.IsRestored || Context.Caretaker.Peek().GetState() != Context.CurrentEditorContent)
             {
-                if (Context.History.Last() != Context.CurrentEditorContent)
+                try
                 {
                     var loader = new LilypondLoadStrategy(Context.Pool);
                     var success = loader.Load(Context.CurrentEditorContent);
                     if (success)
                     {
-                        loader.Apply();
-                        Context.AddMemento(Context.CurrentEditorContent);
+                        if (Context.IsRestored)
+                        {
+                            loader.Apply();
+                            Context.IsRestored = false;
+                        }
+                        else
+                        {
+                            loader.Apply(vm => !(vm is LilypondViewManager));
+                            Context.Caretaker.FlushRedos();
+                            Context.Caretaker.Backup();
+                        }
                     }
                 }
-            } catch(InvalidScoreException e)
-            {
-                Debug.WriteLine(e.Message);
+                catch (InvalidScoreException e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
             }
-
             Context.SetState(new IdleState(Context));
         }
     }
