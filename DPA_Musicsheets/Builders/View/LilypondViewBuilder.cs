@@ -17,7 +17,6 @@ namespace DPA_Musicsheets.Builders.View
         private bool _lastIsKeyword;
         private TimeSignature _lastTimeSignature;
         private double _progress;
-        private Octaves _previousOctave;
         private int _lastTempo;
         private Note _previousNote;
 
@@ -34,10 +33,9 @@ namespace DPA_Musicsheets.Builders.View
         {
             _scopes = 1;
             _output = new string(' ', _scopes * SPACES_IN_TAB);
-            _previousOctave = Octaves.Three;
             _lastIsKeyword = true;
             _lastTempo = 0;
-            _previousNote = null;
+            _previousNote = new Note(Names.C, Octaves.Three);
             _relative = null;
         }
 
@@ -53,7 +51,7 @@ namespace DPA_Musicsheets.Builders.View
             _lastIsKeyword = true;
         }
 
-        public void AddTempo(int tempo)
+        private void AddTempo(int tempo)
         {
             if (_lastTempo != tempo)
             {
@@ -101,14 +99,13 @@ namespace DPA_Musicsheets.Builders.View
             return _previousNote.Octave;
         }
 
-        public void AddNote(Note note)
+        private void AddNote(Note note)
         {
             if (_relative == null)
             {
-                var diff = note.Octave - _previousOctave;
+                var diff = note.Octave - GetOctave(note);
                 _relative = $"\\relative c{(diff > 0 ? new string('\'', diff) : new string(',', -diff))} {{\n";
-                _previousOctave = note.Octave;
-                _previousNote = new Note(Names.C, _previousOctave);
+                _previousNote = new Note(Names.C, Octaves.Three + diff);
             }
 
             var difference = note.Octave - GetOctave(note);
@@ -123,7 +120,7 @@ namespace DPA_Musicsheets.Builders.View
             SetBarlineProgress((double) note.Duration, note.Dots);
         }
 
-        public void AddRest(Rest rest)
+        private void AddRest(Rest rest)
         {
             _output += $"r{(int) rest.Duration}{new string('.', rest.Dots)} ";
             _lastIsKeyword = false;
@@ -131,7 +128,7 @@ namespace DPA_Musicsheets.Builders.View
             SetBarlineProgress((double) rest.Duration, rest.Dots);
         }
 
-        public void SetBarlineProgress(double duration, int dots)
+        private void SetBarlineProgress(double duration, int dots)
         {
             _progress -= DurationUtils.GetProgressDuration((double) _lastTimeSignature.Beat / duration, dots);
 
@@ -142,7 +139,7 @@ namespace DPA_Musicsheets.Builders.View
             }
         }
 
-        public void AddTimeSignature(TimeSignature timeSignature)
+        private void AddTimeSignature(TimeSignature timeSignature)
         {
             if (timeSignature == _lastTimeSignature) return;
             if (!_lastIsKeyword)
@@ -177,6 +174,64 @@ namespace DPA_Musicsheets.Builders.View
         public void Reset()
         {
             Init();
+        }
+
+        public void AddSymbolGroup(SymbolGroup group)
+        {
+            AddTimeSignature(group.Meter);
+            AddTempo(group.Tempo);
+
+            if (group.Repeat != null)
+            {
+                _scopes++;
+                _output = _output.TrimEnd(' ', '\n', '|');
+                _output += $"\n{new string(' ', _scopes * SPACES_IN_TAB)}\\repeat volta {group.Repeat.Times} {{\n{new string(' ', _scopes * SPACES_IN_TAB)}";
+            }
+
+            foreach (var symbol in group.Symbols)
+            {
+                if (symbol is Note note)
+                {
+                    AddNote(note);
+                }
+
+                if (symbol is Rest rest)
+                {
+                    AddRest(rest);
+                }
+            }
+
+            if (group.Repeat != null)
+            {
+                _output = _output.TrimEnd(' ', '\n', '|');
+                _output += $"\r{new string(' ', --_scopes * SPACES_IN_TAB)}}}\n{new string(' ', _scopes * SPACES_IN_TAB)}";
+            }
+
+            if (group.Repeat != null)
+            {
+                AddRepeat(group.Repeat);
+            }
+        }
+
+        private void AddRepeat(Repeat repeat)
+        {
+            _scopes++;
+            _output += $"\\alternative {{\n{new string(' ', _scopes * SPACES_IN_TAB)}";
+
+            foreach (var alt in repeat.Alternatives)
+            {
+                _scopes++;
+                _output += "{ ";
+                AddSymbolGroup(alt);
+
+                _scopes--;
+                _output = _output.TrimEnd(' ', '\n', '|');
+                _output += $" }}\n{new string(' ', _scopes * SPACES_IN_TAB)}";
+            }
+
+            _scopes--;
+            _output = _output.TrimEnd(' ', '\n', '|');
+            _output += $"\r}}\n{new string(' ', _scopes * SPACES_IN_TAB)}";
         }
     }
 }
