@@ -13,14 +13,21 @@ using DPA_Musicsheets.Managers.View;
 using DPA_Musicsheets.States;
 using DPA_Musicsheets.Mementos;
 using System.Diagnostics;
+using DPA_Musicsheets.Commands;
+using DPA_Musicsheets.Commands.Handlers;
+using System.Collections.Generic;
 
 namespace DPA_Musicsheets.ViewModels
 {
     public class LilypondViewModel : ViewModelBase, IView<string>
     {
+        private readonly IHandler _handler;
+        private List<Key> _pressedKeys;
+        private Invoker _invoker;
         private MusicLoader _musicLoader { get; set; }
         private EditorContext _context { get; set; }
         private MainViewModel _mainViewModel { get; set; }
+
 
         /// <summary>
         /// This text will be in the textbox.
@@ -39,14 +46,20 @@ namespace DPA_Musicsheets.ViewModels
             }
         }
 
-        public LilypondViewModel(IViewManagerPool pool, EditorContext context)
+        public LilypondViewModel(IViewManagerPool pool, EditorContext context, Invoker invoker)
         {
+            _invoker = invoker;
+
             _context = context;
+            _context.CurrentEditorContent = "Lilypond will appear here";
+
+            _pressedKeys = new List<Key>();
 
             var viewManager = pool.GetInstance<LilypondViewManager>();
             viewManager.RegisterViewModel(this);
 
-            _context.CurrentEditorContent = "Lilypond will appear here";
+            _handler = new SaveToLilypondHandler(_invoker, _context)
+                .SetNext(new SaveToPdfHandler(_invoker, _context));
         }
 
         public void Load(string data)
@@ -64,7 +77,7 @@ namespace DPA_Musicsheets.ViewModels
         /// <summary>
         /// This occurs when the text in the textbox has changed. This can either be by loading or typing.
         /// </summary>
-        public ICommand TextChangedCommand => new RelayCommand<TextChangedEventArgs>((args) =>
+        public System.Windows.Input.ICommand TextChangedCommand => new RelayCommand<TextChangedEventArgs>((args) =>
         {
             _context.CurrentState.Handle();
             _context.SetState(new IdleState(_context));
@@ -85,7 +98,7 @@ namespace DPA_Musicsheets.ViewModels
             _context.CurrentState.Handle();
         }, () => _context.Caretaker.IsRedoable());
 
-        public ICommand SaveAsCommand => new RelayCommand(() =>
+        public System.Windows.Input.ICommand SaveAsCommand => new RelayCommand(() =>
         {
             // TODO: In the application a lot of classes know which filetypes are supported. Lots and lots of repeated code here...
             // Can this be done better?
@@ -110,6 +123,29 @@ namespace DPA_Musicsheets.ViewModels
                     MessageBox.Show($"Extension {extension} is not supported.");
                 }
             }
+        });
+
+
+        public System.Windows.Input.ICommand OnLostFocusCommand => new RelayCommand(() =>
+        {
+            Console.WriteLine("lilypondviewmodel Lost focus");
+        });
+
+        public System.Windows.Input.ICommand OnKeyDownCommand => new RelayCommand<KeyEventArgs>((e) =>
+        {
+            Console.WriteLine($"lilypondviewmodel Key down: {e.Key}");
+            _pressedKeys.Add(e.Key);
+
+            _handler.Handle(new Request
+            {
+                PressedKeys = _pressedKeys
+            });
+        });
+
+        public System.Windows.Input.ICommand OnKeyUpCommand => new RelayCommand<KeyEventArgs>((e) =>
+        {
+            Console.WriteLine("lilypondviewmodel Key Up");
+            _pressedKeys.Remove(e.Key);
         });
 
         #endregion Commands for buttons like Undo, Redo and SaveAs
