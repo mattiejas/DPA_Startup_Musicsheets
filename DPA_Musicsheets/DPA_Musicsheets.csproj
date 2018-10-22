@@ -113,7 +113,6 @@
     <Compile Include="Commands\Actions\SaveToLilypondCommand.cs" />
     <Compile Include="Commands\Actions\SaveToPdfCommand.cs" />
     <Compile Include="Commands\Handlers\AddClefHandler.cs" />
-    <Compile Include="Commands\Handlers\Class1.cs" />
     <Compile Include="Commands\Handlers\OpenFileHandler.cs" />
     <Compile Include="Commands\Handlers\SaveToLilypondHandler.cs" />
     <Compile Include="Commands\Handlers\SaveToPdfHandler.cs" />

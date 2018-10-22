@@ -2,6 +2,7 @@
 using DPA_Musicsheets.States;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,16 +14,17 @@ namespace DPA_Musicsheets.Commands.Handlers
     {
         private EditorContext _editorContext;
 
-        public SaveToLilypondHandler(Invoker invoker, EditorContext editorContext) : base(invoker)
+        public SaveToLilypondHandler(Invoker invoker, List<Key> shortcut, EditorContext editorContext) : base(invoker, shortcut)
         {
             _editorContext = editorContext;
         }
 
         public override Request Handle(Request request)
         {
-            if ((request.PressedKeys.Contains(Key.LeftCtrl) || request.PressedKeys.Contains(Key.RightCtrl)) &&
-                request.PressedKeys.Contains(Key.S))
+            if (this.AreEqual(request.PressedKeys, _shortcut))
             {
+                request.PressedKeys.Clear();
+
                 var command = new SaveToLilypondCommand(_editorContext.CurrentEditorContent);
                 _invoker.SetCommand(command);
                 _invoker.ExecuteCommand();

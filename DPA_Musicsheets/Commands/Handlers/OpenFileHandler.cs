@@ -1,6 +1,7 @@
 ﻿using DPA_Musicsheets.Commands.Actions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,18 +11,19 @@ namespace DPA_Musicsheets.Commands.Handlers
 {
     public class OpenFileHandler : AbstractHandler
     {
-        private Action<string> _callback;
+        private readonly Action<string> _callback;
 
-        public OpenFileHandler(Invoker invoker, Action<string> callback) : base(invoker)
+        public OpenFileHandler(Invoker invoker, List<Key> shortcut, Action<string> callback) : base(invoker, shortcut)
         {
             _callback = callback;
         }
 
         public override Request Handle(Request request)
         {
-            if ((request.PressedKeys.Contains(Key.LeftCtrl) || request.PressedKeys.Contains(Key.RightCtrl)) &&
-                request.PressedKeys.Contains(Key.O))
+            if (this.AreEqual(request.PressedKeys, _shortcut))
             {
+                request.PressedKeys.Clear();
+
                 var command = new OpenFileCommand(_callback);
                 _invoker.SetCommand(command);
                 _invoker.ExecuteCommand();

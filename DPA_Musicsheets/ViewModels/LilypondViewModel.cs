@@ -16,6 +16,7 @@ using System.Diagnostics;
 using DPA_Musicsheets.Commands;
 using DPA_Musicsheets.Commands.Handlers;
 using System.Collections.Generic;
+using DPA_Musicsheets.Commands.Actions;
 
 namespace DPA_Musicsheets.ViewModels
 {
@@ -58,8 +59,8 @@ namespace DPA_Musicsheets.ViewModels
             var viewManager = pool.GetInstance<LilypondViewManager>();
             viewManager.RegisterViewModel(this);
 
-            _handler = new SaveToLilypondHandler(_invoker, _context)
-                .SetNext(new SaveToPdfHandler(_invoker, _context));
+            _handler = new SaveToPdfHandler(_invoker, new List<Key> { Key.LeftCtrl, Key.P, Key.S }, _context);
+            _handler.SetNext(new SaveToLilypondHandler(_invoker, new List<Key> { Key.LeftCtrl, Key.S }, _context));
         }
 
         public void Load(string data)
@@ -112,10 +113,12 @@ namespace DPA_Musicsheets.ViewModels
                 }
                 else if (extension.EndsWith(".ly"))
                 {
+                    // new SaveToLilypondCommand(_context.CurrentEditorContent); Command kunnen we helaas niet gebruiken, omdat het een filename verwacht
                     _musicLoader.SaveToLilypond(saveFileDialog.FileName);
                 }
                 else if (extension.EndsWith(".pdf"))
                 {
+                    // new SaveToPdfCommand(_context.CurrentEditorContent); Command kunnen we helaas niet gebruiken, omdat het een filename verwacht
                     _musicLoader.SaveToPDF(saveFileDialog.FileName);
                 }
                 else

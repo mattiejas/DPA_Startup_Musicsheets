@@ -12,16 +12,17 @@ namespace DPA_Musicsheets.Commands.Handlers
     {
         private string _lilypondText;
 
-        public AddClefHandler(Invoker invoker, string lilypondText) : base(invoker)
+        public AddClefHandler(Invoker invoker, List<Key> shortcut, string lilypondText) : base(invoker, shortcut)
         {
             _lilypondText = lilypondText;
         }
 
         public override Request Handle(Request request)
         {
-            if ((request.PressedKeys.Contains(Key.LeftAlt) || request.PressedKeys.Contains(Key.RightAlt)) &&
-                request.PressedKeys.Contains(Key.C))
+            if (this.AreEqual(request.PressedKeys, _shortcut))
             {
+                request.PressedKeys.Clear();
+
                 var command = new AddClefCommand();
                 _invoker.SetCommand(command);
                 _invoker.ExecuteCommand();

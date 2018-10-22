@@ -58,7 +58,7 @@ namespace DPA_Musicsheets.ViewModels
             _musicLoader = musicLoader;
             FileName = @"Files/Alle-eendjes-zwemmen-in-het-water.mid";
 
-            _handler = new OpenFileHandler(_invoker, SetFileName);
+            _handler = new OpenFileHandler(_invoker, new List<Key> { Key.LeftCtrl, Key.O }, SetFileName);
             // TODO: Chain SetNext(IHandler handler);
         }
 
