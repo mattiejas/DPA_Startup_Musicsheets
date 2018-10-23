@@ -21,7 +21,7 @@ namespace DPA_Musicsheets.Commands.Handlers
 
         public override Request Handle(Request request)
         {
-            if (this.AreEqual(request.PressedKeys, _shortcut))
+            if (AreEqual(request.PressedKeys, _shortcut))
             {
                 request.PressedKeys.Clear();
 

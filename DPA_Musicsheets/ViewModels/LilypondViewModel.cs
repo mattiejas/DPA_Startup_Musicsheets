@@ -23,6 +23,7 @@ namespace DPA_Musicsheets.ViewModels
     public class LilypondViewModel : ViewModelBase, IView<string>
     {
         private readonly IHandler _handler;
+        private int _selectionIndex;
         private List<Key> _pressedKeys;
         private Invoker _invoker;
         private MusicLoader _musicLoader { get; set; }
@@ -61,6 +62,7 @@ namespace DPA_Musicsheets.ViewModels
 
             _handler = new SaveToPdfHandler(_invoker, new List<Key> { Key.LeftCtrl, Key.P, Key.S }, _context);
             _handler.SetNext(new SaveToLilypondHandler(_invoker, new List<Key> { Key.LeftCtrl, Key.S }, _context));
+            _handler.SetNext(new AddClefHandler(_invoker, new List<Key> { Key.LeftCtrl, Key.I }, _context, _selectionIndex));
         }
 
         public void Load(string data)
@@ -83,6 +85,26 @@ namespace DPA_Musicsheets.ViewModels
             _context.CurrentState.Handle();
             _context.SetState(new IdleState(_context));
         });
+
+        RelayCommand<RoutedEventArgs> _selectionChangedCommand = null;
+        public System.Windows.Input.ICommand SelectionChangedCommand
+        {
+            get
+            {
+                if (_selectionChangedCommand == null)
+                {
+                    _selectionChangedCommand = new RelayCommand<RoutedEventArgs>((r) => SelectionChanged(r), (r) => true);
+                }
+
+                return _selectionChangedCommand;
+            }
+        }
+
+        protected virtual void SelectionChanged(RoutedEventArgs _args)
+        {
+            _selectionIndex = (_args.OriginalSource as System.Windows.Controls.TextBox).SelectionStart;
+        }
+
 
         #region Commands for buttons like Undo, Redo and SaveAs
         public RelayCommand UndoCommand => new RelayCommand(() =>
