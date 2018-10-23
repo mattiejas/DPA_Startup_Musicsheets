@@ -9,6 +9,6 @@ namespace DPA_Musicsheets.Commands
 {
     public class Request
     {
-        public List<Key> PressedKeys { get; set; }
+        public Shortcut Shortcut { get; set; }
     }
 }

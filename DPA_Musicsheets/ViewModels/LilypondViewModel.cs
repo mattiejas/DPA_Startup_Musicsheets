@@ -16,19 +16,21 @@ using System.Diagnostics;
 using DPA_Musicsheets.Commands;
 using DPA_Musicsheets.Commands.Handlers;
 using System.Collections.Generic;
+using System.Linq;
 using DPA_Musicsheets.Commands.Actions;
 
 namespace DPA_Musicsheets.ViewModels
 {
-    public class LilypondViewModel : ViewModelBase, IView<string>
+    public class LilypondViewModel : ViewModelBase, IView<string>, Insertable<string>
     {
         private readonly IHandler _handler;
         private int _selectionIndex;
-        private List<Key> _pressedKeys;
+        private Shortcut _pressedKeys;
         private Invoker _invoker;
         private MusicLoader _musicLoader { get; set; }
         private EditorContext _context { get; set; }
         private MainViewModel _mainViewModel { get; set; }
+        private RelayCommand<RoutedEventArgs> _selectionChangedCommand;
 
 
         /// <summary>
@@ -37,10 +39,7 @@ namespace DPA_Musicsheets.ViewModels
         /// </summary>
         public string LilypondText
         {
-            get
-            {
-                return _context.CurrentEditorContent;
-            }
+            get { return _context.CurrentEditorContent; }
             set
             {
                 _context.CurrentEditorContent = value;
@@ -55,14 +54,27 @@ namespace DPA_Musicsheets.ViewModels
             _context = context;
             _context.CurrentEditorContent = "Lilypond will appear here";
 
-            _pressedKeys = new List<Key>();
+            _pressedKeys = new Shortcut();
 
             var viewManager = pool.GetInstance<LilypondViewManager>();
             viewManager.RegisterViewModel(this);
 
-            _handler = new SaveToPdfHandler(_invoker, new List<Key> { Key.LeftCtrl, Key.P, Key.S }, _context);
-            _handler.SetNext(new SaveToLilypondHandler(_invoker, new List<Key> { Key.LeftCtrl, Key.S }, _context));
-            _handler.SetNext(new AddClefHandler(_invoker, new List<Key> { Key.LeftCtrl, Key.I }, _context, _selectionIndex));
+            _handler = new SaveToPdfHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.P, Key.S), _context); // first
+            var next = _handler.SetNext(new SaveToLilypondHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.S), _context));
+
+            // NOTE: LeftAlt is not working; something about Windows interfering as it expects ALT-F4 or some other menu bar item
+            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.T, Key.D3), this, "\\time 3/6"));
+            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.T, Key.D6), this, "\\time 6/8"));
+            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.T, Key.D4), this," \\time 4/4"));
+            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.T), this, "\\time 4/4"));
+            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.S), this, "\\tempo 4=120"));
+            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.C), this, "\\clef treble"));
+        }
+
+        public void Insert(string value)
+        {
+            var result = LilypondText.Substring(0, _selectionIndex) + value + LilypondText.Substring(_selectionIndex);
+            LilypondText = result;
         }
 
         public void Load(string data)
@@ -86,27 +98,19 @@ namespace DPA_Musicsheets.ViewModels
             _context.SetState(new IdleState(_context));
         });
 
-        RelayCommand<RoutedEventArgs> _selectionChangedCommand = null;
+        // Had to do some funky stuff to get SelectionStart 
         public System.Windows.Input.ICommand SelectionChangedCommand
         {
-            get
-            {
-                if (_selectionChangedCommand == null)
-                {
-                    _selectionChangedCommand = new RelayCommand<RoutedEventArgs>((r) => SelectionChanged(r), (r) => true);
-                }
-
-                return _selectionChangedCommand;
-            }
+            get { return _selectionChangedCommand = new RelayCommand<RoutedEventArgs>(SelectionChanged, r => true); }
         }
 
-        protected virtual void SelectionChanged(RoutedEventArgs _args)
+        protected virtual void SelectionChanged(RoutedEventArgs args)
         {
-            _selectionIndex = (_args.OriginalSource as System.Windows.Controls.TextBox).SelectionStart;
+            _selectionIndex = (args.OriginalSource as System.Windows.Controls.TextBox)?.SelectionStart ?? 0;
         }
-
 
         #region Commands for buttons like Undo, Redo and SaveAs
+
         public RelayCommand UndoCommand => new RelayCommand(() =>
         {
             _context.Caretaker.Undo();
@@ -125,7 +129,7 @@ namespace DPA_Musicsheets.ViewModels
         {
             // TODO: In the application a lot of classes know which filetypes are supported. Lots and lots of repeated code here...
             // Can this be done better?
-            SaveFileDialog saveFileDialog = new SaveFileDialog() { Filter = "Midi|*.mid|Lilypond|*.ly|PDF|*.pdf" };
+            SaveFileDialog saveFileDialog = new SaveFileDialog() {Filter = "Midi|*.mid|Lilypond|*.ly|PDF|*.pdf"};
             if (saveFileDialog.ShowDialog() == true)
             {
                 string extension = Path.GetExtension(saveFileDialog.FileName);
@@ -161,10 +165,8 @@ namespace DPA_Musicsheets.ViewModels
             Console.WriteLine($"lilypondviewmodel Key down: {e.Key}");
             _pressedKeys.Add(e.Key);
 
-            _handler.Handle(new Request
-            {
-                PressedKeys = _pressedKeys
-            });
+            var handled = _handler.Handle(new Request {Shortcut = _pressedKeys});
+            _pressedKeys = handled?.Shortcut ?? _pressedKeys; // only set new pressed key if handled successfully
         });
 
         public System.Windows.Input.ICommand OnKeyUpCommand => new RelayCommand<KeyEventArgs>((e) =>

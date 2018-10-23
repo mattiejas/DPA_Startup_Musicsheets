@@ -14,23 +14,21 @@ namespace DPA_Musicsheets.Commands.Handlers
     {
         private EditorContext _editorContext;
 
-        public SaveToLilypondHandler(Invoker invoker, List<Key> shortcut, EditorContext editorContext) : base(invoker, shortcut)
+        public SaveToLilypondHandler(Invoker invoker, Shortcut shortcut, EditorContext editorContext) : base(invoker, shortcut)
         {
             _editorContext = editorContext;
         }
 
         public override Request Handle(Request request)
         {
-            if (this.AreEqual(request.PressedKeys, _shortcut))
-            {
-                request.PressedKeys.Clear();
+            if (!request.Shortcut.Contains(_shortcut)) return base.Handle(request);
 
-                var command = new SaveToLilypondCommand(_editorContext.CurrentEditorContent);
-                _invoker.SetCommand(command);
-                _invoker.ExecuteCommand();
-                return request;
-            }
-            return base.Handle(request);
+            var command = new SaveToLilypondCommand(_editorContext.CurrentEditorContent);
+            _invoker.SetCommand(command);
+            _invoker.ExecuteCommand();
+
+            request.Shortcut.Clear();
+            return request;
         }
     }
 }

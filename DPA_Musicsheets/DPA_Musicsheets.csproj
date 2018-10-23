@@ -107,12 +107,12 @@
     <Compile Include="Builders\View\LilypondViewBuilder.cs" />
     <Compile Include="Builders\View\PsamViewBuilder.cs" />
     <Compile Include="Commands\AbstractHandler.cs" />
-    <Compile Include="Commands\Actions\AddClefCommand.cs" />
+    <Compile Include="Commands\Actions\InsertCommand.cs" />
     <Compile Include="Commands\Actions\LoadFileCommand.cs" />
     <Compile Include="Commands\Actions\OpenFileCommand.cs" />
     <Compile Include="Commands\Actions\SaveToLilypondCommand.cs" />
     <Compile Include="Commands\Actions\SaveToPdfCommand.cs" />
-    <Compile Include="Commands\Handlers\AddClefHandler.cs" />
+    <Compile Include="Commands\Handlers\InsertHandler.cs" />
     <Compile Include="Commands\Handlers\OpenFileHandler.cs" />
     <Compile Include="Commands\Handlers\SaveToLilypondHandler.cs" />
     <Compile Include="Commands\Handlers\SaveToPdfHandler.cs" />
@@ -120,6 +120,7 @@
     <Compile Include="Commands\IHandler.cs" />
     <Compile Include="Commands\Invoker.cs" />
     <Compile Include="Commands\Request.cs" />
+    <Compile Include="Commands\Shortcut.cs" />
     <Compile Include="Managers\View\LilypondViewManager.cs" />
     <Compile Include="Mementos\Caretaker.cs" />
     <Compile Include="Mementos\ConcreteMemento.cs" />

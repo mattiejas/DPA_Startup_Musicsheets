@@ -14,24 +14,21 @@ namespace DPA_Musicsheets.Commands.Handlers
     {
         private EditorContext _editorContext;
 
-        public SaveToPdfHandler(Invoker invoker, List<Key> shortcut, EditorContext editorContext) : base(invoker, shortcut)
+        public SaveToPdfHandler(Invoker invoker, Shortcut shortcut, EditorContext editorContext) : base(invoker, shortcut)
         {
             _editorContext = editorContext;
         }
 
         public override Request Handle(Request request)
         {
-            if (AreEqual(request.PressedKeys, _shortcut))
-            {
-                request.PressedKeys.Clear();
+            if (!request.Shortcut.Contains(_shortcut)) return base.Handle(request);
 
-                var command = new SaveToPdfCommand(_editorContext.CurrentEditorContent);
-                _invoker.SetCommand(command);
-                _invoker.ExecuteCommand();
-                return request;
-            }
+            var command = new SaveToPdfCommand(_editorContext.CurrentEditorContent);
+            _invoker.SetCommand(command);
+            _invoker.ExecuteCommand();
 
-            return base.Handle(request);
+            request.Shortcut.Clear();
+            return request;
         }
     }
 }
