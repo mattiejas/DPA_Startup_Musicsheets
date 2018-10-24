@@ -103,10 +103,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Builders\Midi\ChannelEventHandler.cs" />
-    <Compile Include="Builders\Midi\CloseNoteEvent.cs" />
-    <Compile Include="Builders\Midi\IMidiEvent.cs" />
-    <Compile Include="Builders\Midi\MetaEventHandler.cs" />
     <Compile Include="Builders\Score\LilypondScoreBuilder.cs" />
     <Compile Include="Builders\View\LilypondViewBuilder.cs" />
     <Compile Include="Builders\View\PsamViewBuilder.cs" />

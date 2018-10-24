@@ -6,10 +6,9 @@ using Common.Definitions;
 using Common.Interfaces;
 using Common.Models;
 using Common.Utils;
-using DPA_Musicsheets.Builders.Midi;
 using Sanford.Multimedia.Midi;
 
-namespace DPA_Musicsheets.Builders.Score
+namespace DPA_Musicsheets.Builders.Midi
 {
     public class MidiScoreBuilder : IScoreBuilder
     {
@@ -19,7 +18,6 @@ namespace DPA_Musicsheets.Builders.Score
         private bool _startedNoteIsClosed;
 
         private List<Symbol> _symbols;
-        private Dictionary<MessageType, IMidiEvent> _eventStrategyHandlers;
 
         internal class MetaSymbolGroup
         {
@@ -40,12 +38,6 @@ namespace DPA_Musicsheets.Builders.Score
             _startedNoteIsClosed = true;
             _previousTicks = 0;
             _symbols = new List<Symbol>();
-
-            //_eventStrategyHandlers = new Dictionary<MessageType, IMidiEvent>
-            //{
-            //    { MessageType.Channel, new ChannelEventHandler() },
-            //    { MessageType.Meta, new MetaEventHandler() },
-            //};
         }
 
         public Common.Models.Score Build()
@@ -75,10 +67,8 @@ namespace DPA_Musicsheets.Builders.Score
             foreach (var midiEvent in track.Iterator())
             {
                 IMidiMessage midiMessage = midiEvent.MidiMessage;
-                // TODO: Split this switch statements and create separate logic.
-                // We want to split this so that we can expand our functionality later with new keywords for example.
-                // Hint: Command pattern? Strategies? Factory method?
                 if (midiEvent.AbsoluteTicks < start) continue;
+
                 if (end != null && midiEvent.AbsoluteTicks >= end) return _symbols;
 
                 if (midiMessage.MessageType != MessageType.Channel) continue;
@@ -95,6 +85,7 @@ namespace DPA_Musicsheets.Builders.Score
                     }
                 }
             }
+
             return _symbols;
         }
 
