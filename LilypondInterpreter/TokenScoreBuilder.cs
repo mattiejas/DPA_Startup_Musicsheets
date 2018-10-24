@@ -11,7 +11,7 @@ using Repeat = LilypondInterpreter.Tokens.Repeat;
 
 namespace LilypondInterpreter
 {
-    public class TokenScoreBuilder : IScoreBuilder
+    public class TokenScoreBuilder : IBuilder<Score>
     {
         private readonly List<string> _notes = new List<string> { "c", "d", "e", "f", "g", "a", "b" };
         private readonly List<string> _crosses = new List<string> { "cis", "dis", "fis", "gis", "ais" };

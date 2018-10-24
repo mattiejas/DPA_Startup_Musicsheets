@@ -12,6 +12,7 @@ namespace DPA_Musicsheets.States
     public class EditorContext : IOrginator
     {
         public readonly IViewManagerPool Pool;
+        public string SavedState { get; set; }
         public State CurrentState { get; private set; }
         public bool IsRestored { get; set; }
         public string CurrentEditorContent { get; set; }

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DPA_Musicsheets.Builders.Score
 {
-    class LilypondScoreBuilder : IScoreBuilder
+    class LilypondScoreBuilder : IBuilder<Common.Models.Score>
     {
         private readonly string _input;
 
@@ -22,9 +22,8 @@ namespace DPA_Musicsheets.Builders.Score
         {
             var tokens = LilypondInterpreter.Tokenizer.Tokenize(_input);
             var score = LilypondInterpreter.Interpreter.Interpret(tokens);
-            
+
             return score;
         }
     }
 }
- 

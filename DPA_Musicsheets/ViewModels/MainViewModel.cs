@@ -2,6 +2,7 @@
 using DPA_Musicsheets.Commands.Actions;
 using DPA_Musicsheets.Commands.Handlers;
 using DPA_Musicsheets.Managers;
+using DPA_Musicsheets.States;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using Microsoft.Win32;
@@ -9,6 +10,8 @@ using PSAMWPFControlLibrary;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +26,7 @@ namespace DPA_Musicsheets.ViewModels
         private readonly Invoker _invoker;
         private readonly IHandler _handler;
         private Shortcut _pressedKeys;
+        private readonly EditorContext _editorContext;
 
         private string _fileName;
 
@@ -54,11 +58,12 @@ namespace DPA_Musicsheets.ViewModels
 
         private readonly MusicLoader _musicLoader;
 
-        public MainViewModel(MusicLoader musicLoader, Invoker invoker)
+        public MainViewModel(MusicLoader musicLoader, Invoker invoker, EditorContext context)
         {
             _invoker = invoker;
             _pressedKeys = new Shortcut();
             _musicLoader = musicLoader;
+            _editorContext = context;
             FileName = @"Files/Alle-eendjes-zwemmen-in-het-water.mid";
 
             _handler = new OpenFileHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.O), SetFileName);
@@ -77,9 +82,11 @@ namespace DPA_Musicsheets.ViewModels
             _invoker.ExecuteCommand();
         });
 
-        public ICommand LoadCommand => new RelayCommand(() => { _musicLoader.OpenFile(FileName); });
-
-        #region Focus and key commands, these can be used for implementing hotkeys
+        public ICommand LoadCommand => new RelayCommand(() =>
+        {
+            _musicLoader.OpenFile(FileName);
+            _editorContext.SavedState = _editorContext.CurrentEditorContent;
+        });
 
         public ICommand OnLostFocusCommand => new RelayCommand(() => { Console.WriteLine("Maingrid Lost focus"); });
 
@@ -98,8 +105,18 @@ namespace DPA_Musicsheets.ViewModels
             _pressedKeys.Remove(e.Key);
         });
 
-        public ICommand OnWindowClosingCommand => new RelayCommand(() => { ViewModelLocator.Cleanup(); });
-
-        #endregion Focus and key commands, these can be used for implementing hotkeys
+        public ICommand OnWindowClosingCommand => new RelayCommand<CancelEventArgs>((args) =>
+        {
+            if (_editorContext.SavedState != _editorContext.CurrentEditorContent)
+            {
+                MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show("Are you sure?", "Delete Confirmation", System.Windows.MessageBoxButton.YesNo);
+                if (messageBoxResult == MessageBoxResult.No)
+                {
+                    args.Cancel = true;
+                    return;
+                }
+            }
+            ViewModelLocator.Cleanup();
+        });
     }
 }

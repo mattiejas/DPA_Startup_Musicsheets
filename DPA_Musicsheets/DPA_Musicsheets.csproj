@@ -104,12 +104,16 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Builders\Score\LilypondScoreBuilder.cs" />
+    <Compile Include="Builders\Midi\SequenceBuilder.cs" />
     <Compile Include="Builders\View\LilypondViewBuilder.cs" />
     <Compile Include="Builders\View\PsamViewBuilder.cs" />
     <Compile Include="Commands\AbstractHandler.cs" />
     <Compile Include="Commands\Actions\InsertCommand.cs" />
     <Compile Include="Commands\Actions\LoadFileCommand.cs" />
     <Compile Include="Commands\Actions\OpenFileCommand.cs" />
+    <Compile Include="Commands\Actions\SaveFileToLilypondCommand.cs" />
+    <Compile Include="Commands\Actions\SaveFileToMidiCommand.cs" />
+    <Compile Include="Commands\Actions\SaveFileToPdfCommand.cs" />
     <Compile Include="Commands\Actions\SaveToLilypondCommand.cs" />
     <Compile Include="Commands\Actions\SaveToPdfCommand.cs" />
     <Compile Include="Commands\Handlers\InsertHandler.cs" />
@@ -133,8 +137,10 @@
     <Compile Include="States\TypingState.cs" />
     <Compile Include="Strategies\IFileStrategy.cs" />
     <Compile Include="Strategies\ILoadStrategy.cs" />
+    <Compile Include="Strategies\ISaveStrategy.cs" />
     <Compile Include="Strategies\LilypondFileStrategy.cs" />
     <Compile Include="Strategies\LilypondLoadStrategy.cs" />
+    <Compile Include="Strategies\LilypondSaveStrategy.cs" />
     <Compile Include="Strategies\MidiFileStrategy.cs" />
     <Compile Include="Builders\Score\MidiScoreBuilder.cs" />
     <Compile Include="Managers\MidiToLilyHelper.cs" />
@@ -144,6 +150,8 @@
     <Compile Include="Models\LilypondToken.cs" />
     <Compile Include="Models\LilypondTokenKind.cs" />
     <Compile Include="Strategies\MidiLoadStrategy.cs" />
+    <Compile Include="Strategies\MidiSaveStrategy.cs" />
+    <Compile Include="Strategies\PdfSaveStrategy.cs" />
     <Compile Include="ViewModels\MidiPlayerViewModel.cs" />
     <Compile Include="ViewModels\StaffsViewModel.cs" />
     <Compile Include="Views\MidiPlayerCtrl.xaml.cs">

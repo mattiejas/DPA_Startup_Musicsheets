@@ -22,7 +22,6 @@ namespace DPA_Musicsheets.Mementos
         public void Backup()
         {
             this._undos.Add(this._originator.Save());
-            this.ShowHistory();
         }
 
         public void Redo()

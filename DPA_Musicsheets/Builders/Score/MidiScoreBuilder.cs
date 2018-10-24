@@ -10,7 +10,7 @@ using Sanford.Multimedia.Midi;
 
 namespace DPA_Musicsheets.Builders.Score
 {
-    public class MidiScoreBuilder : IScoreBuilder
+    public class MidiScoreBuilder : IBuilder<Common.Models.Score>
     {
         private readonly Sequence _sequence;
 

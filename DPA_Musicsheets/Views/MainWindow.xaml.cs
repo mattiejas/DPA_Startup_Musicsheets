@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using DPA_Musicsheets.ViewModels;
+using System.ComponentModel;
+using System.Windows;
 
 namespace DPA_Musicsheets
 {

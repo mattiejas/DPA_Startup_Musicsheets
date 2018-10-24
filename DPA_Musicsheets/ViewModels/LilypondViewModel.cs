@@ -18,6 +18,7 @@ using DPA_Musicsheets.Commands.Handlers;
 using System.Collections.Generic;
 using System.Linq;
 using DPA_Musicsheets.Commands.Actions;
+using DPA_Musicsheets.Strategies;
 
 namespace DPA_Musicsheets.ViewModels
 {
@@ -31,6 +32,7 @@ namespace DPA_Musicsheets.ViewModels
         private EditorContext _context { get; set; }
         private MainViewModel _mainViewModel { get; set; }
         private RelayCommand<RoutedEventArgs> _selectionChangedCommand;
+        private static Dictionary<string, ISaveStrategy> _strategies;
 
 
         /// <summary>
@@ -62,10 +64,17 @@ namespace DPA_Musicsheets.ViewModels
             _handler = new SaveToPdfHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.P, Key.S), _context); // first
             var next = _handler.SetNext(new SaveToLilypondHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.S), _context));
 
+            _strategies = new Dictionary<string, ISaveStrategy>
+            {
+                { ".mid", new MidiSaveStrategy() },
+                { ".pdf", new PdfSaveStrategy() },
+                { ".ly", new LilypondSaveStrategy() }
+            };
+
             // NOTE: LeftAlt is not working; something about Windows interfering as it expects ALT-F4 or some other menu bar item
             next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.T, Key.D3), this, "\\time 3/6"));
             next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.T, Key.D6), this, "\\time 6/8"));
-            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.T, Key.D4), this," \\time 4/4"));
+            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.T, Key.D4), this, " \\time 4/4"));
             next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.T), this, "\\time 4/4"));
             next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.S), this, "\\tempo 4=120"));
             next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.C), this, "\\clef treble"));
@@ -109,8 +118,6 @@ namespace DPA_Musicsheets.ViewModels
             _selectionIndex = (args.OriginalSource as System.Windows.Controls.TextBox)?.SelectionStart ?? 0;
         }
 
-        #region Commands for buttons like Undo, Redo and SaveAs
-
         public RelayCommand UndoCommand => new RelayCommand(() =>
         {
             _context.Caretaker.Undo();
@@ -127,25 +134,13 @@ namespace DPA_Musicsheets.ViewModels
 
         public System.Windows.Input.ICommand SaveAsCommand => new RelayCommand(() =>
         {
-            // TODO: In the application a lot of classes know which filetypes are supported. Lots and lots of repeated code here...
-            // Can this be done better?
-            SaveFileDialog saveFileDialog = new SaveFileDialog() {Filter = "Midi|*.mid|Lilypond|*.ly|PDF|*.pdf"};
+            SaveFileDialog saveFileDialog = new SaveFileDialog() { Filter = "Midi|*.mid|Lilypond|*.ly|PDF|*.pdf" };
             if (saveFileDialog.ShowDialog() == true)
             {
-                string extension = Path.GetExtension(saveFileDialog.FileName);
-                if (extension.EndsWith(".mid"))
+                var extension = Path.GetExtension(saveFileDialog.FileName);
+                if (extension != null && _strategies.ContainsKey(extension))
                 {
-                    _musicLoader.SaveToMidi(saveFileDialog.FileName);
-                }
-                else if (extension.EndsWith(".ly"))
-                {
-                    // new SaveToLilypondCommand(_context.CurrentEditorContent); Command kunnen we helaas niet gebruiken, omdat het een filename verwacht
-                    _musicLoader.SaveToLilypond(saveFileDialog.FileName);
-                }
-                else if (extension.EndsWith(".pdf"))
-                {
-                    // new SaveToPdfCommand(_context.CurrentEditorContent); Command kunnen we helaas niet gebruiken, omdat het een filename verwacht
-                    _musicLoader.SaveToPDF(saveFileDialog.FileName);
+                    _strategies[extension].Handle(saveFileDialog.FileName, _context);
                 }
                 else
                 {
@@ -165,7 +160,7 @@ namespace DPA_Musicsheets.ViewModels
             Console.WriteLine($"lilypondviewmodel Key down: {e.Key}");
             _pressedKeys.Add(e.Key);
 
-            var handled = _handler.Handle(new Request {Shortcut = _pressedKeys});
+            var handled = _handler.Handle(new Request { Shortcut = _pressedKeys });
             _pressedKeys = handled?.Shortcut ?? _pressedKeys; // only set new pressed key if handled successfully
         });
 
@@ -174,7 +169,5 @@ namespace DPA_Musicsheets.ViewModels
             Console.WriteLine("lilypondviewmodel Key Up");
             _pressedKeys.Remove(e.Key);
         });
-
-        #endregion Commands for buttons like Undo, Redo and SaveAs
     }
 }
