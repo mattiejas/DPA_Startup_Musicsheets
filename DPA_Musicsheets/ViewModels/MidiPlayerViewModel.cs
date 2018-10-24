@@ -14,7 +14,7 @@ namespace DPA_Musicsheets.ViewModels
     /// The viewmodel for playing midi sequences.
     /// It supports starting, stopping and restarting.
     /// </summary>
-    public class MidiPlayerViewModel : ViewModelBase
+    public class MidiPlayerViewModel : ViewModelBase, IView<Sequence>
     {
         private OutputDevice _outputDevice;
         private bool _running;
@@ -84,31 +84,36 @@ namespace DPA_Musicsheets.ViewModels
             }
         }
 
-        #region buttons for play, stop, pause
-        public RelayCommand PlayCommand => new RelayCommand(() =>
+        public void Play()
         {
-            if (!_running)
-            {
-                _running = true;
-                _sequencer.Continue();
-                UpdateButtons();
-            }
-        }, () => !_running && _sequencer.Sequence != null);
+            if (_running) return;
+            _running = true;
+            _sequencer.Continue();
+            UpdateButtons();
+        }
 
-        public RelayCommand StopCommand => new RelayCommand(() =>
+        public void Stop()
         {
             _running = false;
             _sequencer.Stop();
             _sequencer.Position = 0;
             UpdateButtons();
-        }, () => _running);
+        }
 
-        public RelayCommand PauseCommand => new RelayCommand(() =>
+        public void Pause()
         {
             _running = false;
             _sequencer.Stop();
             UpdateButtons();
-        }, () => _running);
+        }
+
+        #region buttons for play, stop, pause
+
+        public RelayCommand PlayCommand => new RelayCommand(Play, () => !_running && _sequencer.Sequence != null);
+
+        public RelayCommand StopCommand => new RelayCommand(Stop, () => _running);
+
+        public RelayCommand PauseCommand => new RelayCommand(Pause, () => _running);
 
         #endregion buttons for play, stop, pause
 
@@ -122,6 +127,14 @@ namespace DPA_Musicsheets.ViewModels
             _sequencer.Stop();
             _sequencer.Dispose();
             _outputDevice.Dispose();
+        }
+
+        public void Load(Sequence data)
+        {
+            var wasRunning = _running;
+            Stop();
+            _sequencer.Sequence = data;
+            if (wasRunning) Play();
         }
     }
 }

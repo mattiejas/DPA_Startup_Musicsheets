@@ -6,12 +6,9 @@ namespace Common.Interfaces
 {
     public interface IViewBuilder<T>
     {
-        void AddNote(Note note);
-        void AddRest(Rest rest);
+        void AddSymbolGroup(SymbolGroup group);
         void AddClef(Clefs clef);
-        void AddTimeSignature(TimeSignature timeSignature);
-
         void Reset();
-        IList<T> Build();
+        T Build();
     }
 }

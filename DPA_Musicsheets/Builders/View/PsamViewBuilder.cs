@@ -16,11 +16,11 @@ using Rest = Common.Models.Rest;
 using Clefs = Common.Definitions.Clefs;
 using PSAMRest = PSAMControlLibrary.Rest;
 using TimeSignature = Common.Models.TimeSignature;
-
+using Common.Utils;
 
 namespace DPA_Musicsheets.Builders.View
 {
-    public class PsamViewBuilder : IViewBuilder<MusicalSymbol>
+    public class PsamViewBuilder : IViewBuilder<IList<MusicalSymbol>>
     {
         internal class NoteBeams
         {
@@ -57,7 +57,7 @@ namespace DPA_Musicsheets.Builders.View
             _meter = null;
         }
 
-        public void AddNote(Note note)
+        private void AddNote(Note note)
         {
             // set modifier; negative for flats, positive for sharp
             int modifier = 0;
@@ -231,7 +231,7 @@ namespace DPA_Musicsheets.Builders.View
             }
         }
 
-        public void AddRest(Rest rest)
+        private void AddRest(Rest rest)
         {
             var psamRest = new PSAMRest((MusicalSymbolDuration)rest.Duration);
             _notes.Add(psamRest);
@@ -258,7 +258,7 @@ namespace DPA_Musicsheets.Builders.View
             }
         }
 
-        public void AddTimeSignature(TimeSignature ts)
+        private void AddTimeSignature(TimeSignature ts)
         {
             if (_buffer.Count > 0) FlushBuffer();
             if (_notes.Count > 0) Build();
@@ -275,22 +275,6 @@ namespace DPA_Musicsheets.Builders.View
             }
         }
 
-        /*
-         * Als maatsoort 4/4 is, dan heeft een achtste noot een duur van 0,5 tellen.
-         * Als een achtste noot één dot heeft, dan duurt de noot 0,5 + (0,5/2) = 0,75 tellen.
-         * Als een achtste noot twee dots heeft, dan duurt de noot 0,75 + (0,25/2) = 0,875 tellen:
-         */
-        private double GetProgressDuration(double duration, int dots)
-        {
-            return GetProgressDurationHelper(duration, duration, dots);
-        }
-
-        private double GetProgressDurationHelper(double duration, double alterDuration, int dots)
-        {
-            if (dots == 0) return duration;
-            return GetProgressDurationHelper(duration + (alterDuration / 2), (alterDuration / 2), --dots);
-        }
-
         public IList<MusicalSymbol> Build()
         {
             double progress = _meter.Ticks; // set progress to ticks, e.g. 4
@@ -299,14 +283,14 @@ namespace DPA_Musicsheets.Builders.View
             {
                 if (symbol is PSAMNote note)
                 {
-                    var duration = GetProgressDuration((double)_meter.Beat / (double)note.Duration,
+                    var duration = DurationUtils.GetProgressDuration((double)_meter.Beat / (double)note.Duration,
                         note.NumberOfDots);
                     progress -= duration; // subtract duration from progress                    
                 }
 
                 if (symbol is PSAMRest rest)
                 {
-                    var duration = GetProgressDuration((double)_meter.Beat / (double)rest.Duration,
+                    var duration = DurationUtils.GetProgressDuration((double)_meter.Beat / (double)rest.Duration,
                         rest.NumberOfDots);
                     progress -= duration; // subtract duration from progress    
                 }
@@ -332,6 +316,62 @@ namespace DPA_Musicsheets.Builders.View
 
             _notes = new List<MusicalSymbol>();
             return _symbols;
+        }
+
+        public void AddSymbolGroup(SymbolGroup group)
+        {
+            AddTimeSignature(group.Meter);
+
+            if (group.Repeat != null)
+            {
+                _symbols.Add(new Barline() { RepeatSign = RepeatSignType.Forward });
+            }
+
+            foreach (var symbol in group.Symbols)
+            {
+                if (symbol is Note note)
+                {
+                    AddNote(note);
+                }
+
+                if (symbol is Rest rest)
+                {
+                    AddRest(rest);
+                }
+            }
+
+            if (_buffer.Count > 0) FlushBuffer();
+            if (_notes.Count > 0) Build();
+
+            if (group.Repeat != null)
+            {
+                AddRepeat(group.Repeat);
+            }
+        }
+
+        private void AddRepeat(Repeat repeat)
+        {
+            AddSymbolGroup(repeat.Alternatives.First());
+
+            if (_symbols.Last() is Barline)
+            {
+                _symbols.RemoveAt(_symbols.Count - 1);
+            }
+
+            if (repeat.Alternatives.Count > 1)
+            {
+                var index = _symbols.FindLastIndex(b => b is Barline);
+                _symbols[index] = new Barline { AlternateRepeatGroup = 1 };
+                _symbols.Add(new Barline() { RepeatSign = RepeatSignType.Backward, AlternateRepeatGroup = 2 });
+
+                foreach (var alt in repeat.Alternatives.GetRange(1, repeat.Alternatives.Count - 1))
+                {
+                    AddSymbolGroup(alt);
+                }
+            } else
+            {
+                _symbols.Add(new Barline() { RepeatSign = RepeatSignType.Backward });
+            }
         }
     }
 }

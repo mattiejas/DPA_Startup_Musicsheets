@@ -11,7 +11,7 @@ namespace Common.Models
         public Score(Clefs clef = Clefs.Treble)
         {
             SymbolGroups = new List<SymbolGroup>();
-            this.Clef = clef;
+            Clef = clef;
         }
     }
 }

@@ -7,39 +7,39 @@ using System.Threading.Tasks;
 using Common.Exceptions;
 using Common.Interfaces;
 using Common.Models;
+using DPA_Musicsheets.Builders.View;
 using DPA_Musicsheets.ViewModels;
 
 namespace DPA_Musicsheets.Managers.View
 {
-    class LilypondViewManager : IViewManager
+    public class LilypondViewManager : IViewManager
     {
-        private LilypondViewModel ViewModel { get; set; }
+        private IView<string> _view;
+        private IViewBuilder<string> _builder;
+
+        public LilypondViewManager()
+        {
+            _builder = new LilypondViewBuilder();
+        }
 
         public void Load(Score score)
         {
-            if (ViewModel == null) throw new ViewModelNotFoundException();
+            if (_view == null) throw new ViewModelNotFoundException();
 
-            /*
-                Todo: Zet score om naar een string (of iets anders)
+            _builder.Reset(); // reset builder so symbols don't stack
+            _builder.AddClef(score.Clef);
 
-                // Oude werking:
-                StringBuilder sb = new StringBuilder();
-                foreach (var line in File.ReadAllLines(filename)) 
-                {
-                    sb.AppendLine(line);
-                }
-                this.LilypondText = sb.ToString();
-                this.LilypondViewModel.LilypondTextLoaded(this.LilypondText);
-            */
+            foreach (var symbolGroup in score.SymbolGroups)
+            {
+                _builder.AddSymbolGroup(symbolGroup);
+            }
 
-            // Todo: Zorgt nu voor een foutmelding, omdat MainViewModel n MusicLoader gekoppeld is aan de LilypondViewModel (events).
-            // ViewModel.LilypondText = "To be continued";
-            // ViewModel.LilypondTextLoaded(ViewModel.LilypondText);
+            _view.Load(_builder.Build());
         }
 
-        public void RegisterViewModel(LilypondViewModel viewModel)
+        public void RegisterViewModel(IView<string> view)
         {
-            ViewModel = viewModel;
+            _view = view;
         }
     }
 }

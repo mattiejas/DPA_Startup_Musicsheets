@@ -8,6 +8,7 @@ namespace LilypondInterpreter.Tokens
     {
         public int Times { get; set; }
         public List<Token> Inner { get; set; }
+        public List<List<Token>> Alternatives { get; set; }
 
         public override void Accept(ITokenVisitor visitor)
         {

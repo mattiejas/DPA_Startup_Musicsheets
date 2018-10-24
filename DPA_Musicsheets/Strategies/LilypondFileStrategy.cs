@@ -14,23 +14,23 @@ namespace DPA_Musicsheets.Strategies
 {
     class LilypondFileStrategy : IFileStrategy
     {
-        private readonly IViewManagerPool _pool;
-        private IScoreBuilder _builder;
+        private readonly ILoadStrategy<string> _loader;
 
-        public LilypondFileStrategy(IViewManagerPool pool)
+        public LilypondFileStrategy(ILoadStrategy<string> loader)
         {
-            _pool = pool;
+            _loader = loader;
         }
 
         public void Handle(string filename)
         {
-            _builder = new LilypondScoreBuilder(filename);
-            var score = _builder.Build();
-
-            foreach (var viewManager in _pool)
+            StringBuilder sb = new StringBuilder();
+            foreach (var line in File.ReadAllLines(filename))
             {
-                viewManager.Load(score);
+                sb.AppendLine(line);
             }
+
+            _loader.Load(sb.ToString());
+            _loader.Apply();
         }
     }
 }

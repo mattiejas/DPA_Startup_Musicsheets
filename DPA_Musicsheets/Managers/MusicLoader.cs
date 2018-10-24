@@ -42,8 +42,8 @@ namespace DPA_Musicsheets.Managers
         {
             _strategies = new Dictionary<string, IFileStrategy>
             {
-                {".mid", new MidiFileStrategy(pool)}, // TODO: Is this dirty?
-                { ".ly", new LilypondFileStrategy(pool)}
+                {".mid", new MidiFileStrategy(new MidiLoadStrategy(pool))},
+                { ".ly", new LilypondFileStrategy(new LilypondLoadStrategy(pool))}
             };
         }
 

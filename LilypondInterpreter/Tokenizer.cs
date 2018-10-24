@@ -79,7 +79,7 @@ namespace LilypondInterpreter
                         else if (values[j] == "}")
                         {
                             openScopes--;
-                            if (openScopes >= 0)
+                            if (openScopes <= 0)
                             {
                                 break;
                             }
@@ -90,9 +90,39 @@ namespace LilypondInterpreter
                     {
                         Value = value,
                         Inner = Tokenize(values.Skip(i + 1).Take(j - (i + 1)).ToArray()),
-                        Times = int.Parse(count)
+                        Times = int.Parse(count),
                     };
                     i = j;
+                    var alternatives = new List<List<Token>>();
+
+                    if (values[j + 1] == "\\alternative")
+                    {
+                        j += 3; // skip first open bracket
+                        openScopes = 1;
+
+                        for (; j < values.Length; j++)
+                        {
+                            if (values[j] == "{") // open scope
+                            {
+                                openScopes++;
+                                alternatives.Add(new List<Token>());
+                            }
+                            else if (values[j] == "}")
+                            {
+                                openScopes--;
+                                if (openScopes <= 0)
+                                {
+                                    break;
+                                }
+                            } else
+                            {
+                                alternatives.Last().AddRange(Tokenize(values[j]));
+                            }
+                        }
+                    }
+
+                    i = j;
+                    repeat.Alternatives = alternatives;
                     return repeat;
                 default:
                     return new Keyword

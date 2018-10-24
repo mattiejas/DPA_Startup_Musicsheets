@@ -18,7 +18,7 @@ using DPA_Musicsheets.Managers.View;
 
 namespace DPA_Musicsheets.ViewModels
 {
-    public class StaffsViewModel : ViewModelBase
+    public class StaffsViewModel : ViewModelBase, IView<IList<MusicalSymbol>>
     {
         // These staffs will be bound to.
         public ObservableCollection<MusicalSymbol> Staffs { get; }
@@ -41,11 +41,11 @@ namespace DPA_Musicsheets.ViewModels
         /// SetStaffs fills the observablecollection with new symbols. 
         /// We don't want to reset the collection because we don't want other classes to create an observable collection.
         /// </summary>
-        /// <param name="symbols">The new symbols to show.</param>
-        public void SetStaffs(IList<MusicalSymbol> symbols)
+        /// <param name="data">The new symbols to show.</param>
+        public void Load(IList<MusicalSymbol> data)
         {
             Staffs.Clear();
-            foreach (var symbol in symbols)
+            foreach (var symbol in data)
             {
                 Staffs.Add(symbol);
             }

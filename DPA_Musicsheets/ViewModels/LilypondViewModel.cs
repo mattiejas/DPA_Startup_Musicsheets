@@ -10,17 +10,28 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Common.Interfaces;
 using DPA_Musicsheets.Managers.View;
+using DPA_Musicsheets.States;
+using DPA_Musicsheets.Mementos;
+using System.Diagnostics;
+using DPA_Musicsheets.Commands;
+using DPA_Musicsheets.Commands.Handlers;
+using System.Collections.Generic;
+using System.Linq;
+using DPA_Musicsheets.Commands.Actions;
 
 namespace DPA_Musicsheets.ViewModels
 {
-    public class LilypondViewModel : ViewModelBase
+    public class LilypondViewModel : ViewModelBase, IView<string>, Insertable<string>
     {
-        private MusicLoader _musicLoader;
+        private readonly IHandler _handler;
+        private int _selectionIndex;
+        private Shortcut _pressedKeys;
+        private Invoker _invoker;
+        private MusicLoader _musicLoader { get; set; }
+        private EditorContext _context { get; set; }
         private MainViewModel _mainViewModel { get; set; }
+        private RelayCommand<RoutedEventArgs> _selectionChangedCommand;
 
-        private string _text;
-        private string _previousText;
-        private string _nextText;
 
         /// <summary>
         /// This text will be in the textbox.
@@ -28,108 +39,97 @@ namespace DPA_Musicsheets.ViewModels
         /// </summary>
         public string LilypondText
         {
-            get
-            {
-                return _text;
-            }
+            get { return _context.CurrentEditorContent; }
             set
             {
-                if (!_waitingForRender && !_textChangedByLoad)
-                {
-                    _previousText = _text;
-                }
-                _text = value;
+                _context.CurrentEditorContent = value;
                 RaisePropertyChanged(() => LilypondText);
             }
         }
 
-        private bool _textChangedByLoad = false;
-        private DateTime _lastChange;
-        private static int MILLISECONDS_BEFORE_CHANGE_HANDLED = 1500;
-        private bool _waitingForRender = false;
-
-        public LilypondViewModel(IViewManagerPool pool)
+        public LilypondViewModel(IViewManagerPool pool, EditorContext context, Invoker invoker)
         {
+            _invoker = invoker;
+
+            _context = context;
+            _context.CurrentEditorContent = "Lilypond will appear here";
+
+            _pressedKeys = new Shortcut();
+
             var viewManager = pool.GetInstance<LilypondViewManager>();
             viewManager.RegisterViewModel(this);
 
-            // TODO: Can we use some sort of eventing system so the managers layer doesn't have to know the viewmodel layer and viewmodels don't know each other?
-            // And viewmodels don't 
-            // _mainViewModel = mainViewModel;
-            // _musicLoader = musicLoader;
-            // _musicLoader.LilypondViewModel = this;
+            _handler = new SaveToPdfHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.P, Key.S), _context); // first
+            var next = _handler.SetNext(new SaveToLilypondHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.S), _context));
 
-            _text = "Your lilypond text will appear here.";
+            // NOTE: LeftAlt is not working; something about Windows interfering as it expects ALT-F4 or some other menu bar item
+            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.T, Key.D3), this, "\\time 3/6"));
+            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.T, Key.D6), this, "\\time 6/8"));
+            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.T, Key.D4), this," \\time 4/4"));
+            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.T), this, "\\time 4/4"));
+            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.S), this, "\\tempo 4=120"));
+            next = next.SetNext(new InsertHandler(_invoker, new Shortcut(Key.LeftCtrl, Key.LeftShift, Key.C), this, "\\clef treble"));
         }
 
-        /*
-        public LilypondViewModel(MainViewModel mainViewModel, MusicLoader musicLoader)
+        public void Insert(string value)
         {
-            // TODO: Can we use some sort of eventing system so the managers layer doesn't have to know the viewmodel layer and viewmodels don't know each other?
-            // And viewmodels don't 
-            _mainViewModel = mainViewModel;
-            _musicLoader = musicLoader;
-            _musicLoader.LilypondViewModel = this;
-            
-            _text = "Your lilypond text will appear here.";
+            var result = LilypondText.Substring(0, _selectionIndex) + value + LilypondText.Substring(_selectionIndex);
+            LilypondText = result;
         }
-        */
 
-        public void LilypondTextLoaded(string text)
+        public void Load(string data)
         {
-            _textChangedByLoad = true;
-            LilypondText = _previousText = text;
-            _textChangedByLoad = false;
+            _context.CurrentEditorContent = data;
+
+            if (!_context.IsRestored)
+            {
+                _context.Caretaker.Backup();
+            }
+
+            LilypondText = _context.CurrentEditorContent;
         }
 
         /// <summary>
         /// This occurs when the text in the textbox has changed. This can either be by loading or typing.
         /// </summary>
-        public ICommand TextChangedCommand => new RelayCommand<TextChangedEventArgs>((args) =>
+        public System.Windows.Input.ICommand TextChangedCommand => new RelayCommand<TextChangedEventArgs>((args) =>
         {
-            // If we were typing, we need to do things.
-            if (!_textChangedByLoad)
-            {
-                _waitingForRender = true;
-                _lastChange = DateTime.Now;
-
-                //_mainViewModel.CurrentState = "Rendering...";
-
-                Task.Delay(MILLISECONDS_BEFORE_CHANGE_HANDLED).ContinueWith((task) =>
-                {
-                    if ((DateTime.Now - _lastChange).TotalMilliseconds >= MILLISECONDS_BEFORE_CHANGE_HANDLED)
-                    {
-                        _waitingForRender = false;
-                        UndoCommand.RaiseCanExecuteChanged();
-
-                        _musicLoader.LoadLilypondIntoWpfStaffsAndMidi(LilypondText);
-                        //_mainViewModel.CurrentState = "";
-                    }
-                }, TaskScheduler.FromCurrentSynchronizationContext()); // Request from main thread.
-            }
+            _context.CurrentState.Handle();
+            _context.SetState(new IdleState(_context));
         });
 
+        // Had to do some funky stuff to get SelectionStart 
+        public System.Windows.Input.ICommand SelectionChangedCommand
+        {
+            get { return _selectionChangedCommand = new RelayCommand<RoutedEventArgs>(SelectionChanged, r => true); }
+        }
+
+        protected virtual void SelectionChanged(RoutedEventArgs args)
+        {
+            _selectionIndex = (args.OriginalSource as System.Windows.Controls.TextBox)?.SelectionStart ?? 0;
+        }
+
         #region Commands for buttons like Undo, Redo and SaveAs
+
         public RelayCommand UndoCommand => new RelayCommand(() =>
         {
-            _nextText = LilypondText;
-            LilypondText = _previousText;
-            _previousText = null;
-        }, () => _previousText != null && _previousText != LilypondText);
+            _context.Caretaker.Undo();
+            _context.SetState(new GeneratingState(_context));
+            _context.CurrentState.Handle();
+        }, () => _context.Caretaker.IsUndoable());
 
         public RelayCommand RedoCommand => new RelayCommand(() =>
         {
-            _previousText = LilypondText;
-            LilypondText = _nextText;
-            _nextText = null;
-            RedoCommand.RaiseCanExecuteChanged();
-        }, () => _nextText != null && _nextText != LilypondText);
+            _context.Caretaker.Redo();
+            _context.SetState(new GeneratingState(_context));
+            _context.CurrentState.Handle();
+        }, () => _context.Caretaker.IsRedoable());
 
-        public ICommand SaveAsCommand => new RelayCommand(() =>
+        public System.Windows.Input.ICommand SaveAsCommand => new RelayCommand(() =>
         {
             // TODO: In the application a lot of classes know which filetypes are supported. Lots and lots of repeated code here...
             // Can this be done better?
-            SaveFileDialog saveFileDialog = new SaveFileDialog() { Filter = "Midi|*.mid|Lilypond|*.ly|PDF|*.pdf" };
+            SaveFileDialog saveFileDialog = new SaveFileDialog() {Filter = "Midi|*.mid|Lilypond|*.ly|PDF|*.pdf"};
             if (saveFileDialog.ShowDialog() == true)
             {
                 string extension = Path.GetExtension(saveFileDialog.FileName);
@@ -139,10 +139,12 @@ namespace DPA_Musicsheets.ViewModels
                 }
                 else if (extension.EndsWith(".ly"))
                 {
+                    // new SaveToLilypondCommand(_context.CurrentEditorContent); Command kunnen we helaas niet gebruiken, omdat het een filename verwacht
                     _musicLoader.SaveToLilypond(saveFileDialog.FileName);
                 }
                 else if (extension.EndsWith(".pdf"))
                 {
+                    // new SaveToPdfCommand(_context.CurrentEditorContent); Command kunnen we helaas niet gebruiken, omdat het een filename verwacht
                     _musicLoader.SaveToPDF(saveFileDialog.FileName);
                 }
                 else
@@ -151,6 +153,28 @@ namespace DPA_Musicsheets.ViewModels
                 }
             }
         });
+
+
+        public System.Windows.Input.ICommand OnLostFocusCommand => new RelayCommand(() =>
+        {
+            Console.WriteLine("lilypondviewmodel Lost focus");
+        });
+
+        public System.Windows.Input.ICommand OnKeyDownCommand => new RelayCommand<KeyEventArgs>((e) =>
+        {
+            Console.WriteLine($"lilypondviewmodel Key down: {e.Key}");
+            _pressedKeys.Add(e.Key);
+
+            var handled = _handler.Handle(new Request {Shortcut = _pressedKeys});
+            _pressedKeys = handled?.Shortcut ?? _pressedKeys; // only set new pressed key if handled successfully
+        });
+
+        public System.Windows.Input.ICommand OnKeyUpCommand => new RelayCommand<KeyEventArgs>((e) =>
+        {
+            Console.WriteLine("lilypondviewmodel Key Up");
+            _pressedKeys.Remove(e.Key);
+        });
+
         #endregion Commands for buttons like Undo, Redo and SaveAs
     }
 }
