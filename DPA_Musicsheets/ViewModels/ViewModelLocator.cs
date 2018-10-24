@@ -22,12 +22,12 @@ namespace DPA_Musicsheets.ViewModels
             SimpleIoc.Default.Register<IViewManagerPool, ViewManagerPool>();
             SimpleIoc.Default.Register<MusicLoader>();
             SimpleIoc.Default.Register<Invoker>();
+            SimpleIoc.Default.Register<EditorContext>();
 
             SimpleIoc.Default.Register<MainViewModel>();
             SimpleIoc.Default.Register<LilypondViewModel>();
             SimpleIoc.Default.Register<StaffsViewModel>();
             SimpleIoc.Default.Register<MidiPlayerViewModel>();
-            SimpleIoc.Default.Register<EditorContext>();
         }
 
         public MainViewModel MainViewModel => ServiceLocator.Current.GetInstance<MainViewModel>();

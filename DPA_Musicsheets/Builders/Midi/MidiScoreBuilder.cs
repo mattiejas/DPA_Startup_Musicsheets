@@ -8,11 +8,16 @@ using Common.Models;
 using Common.Utils;
 using Sanford.Multimedia.Midi;
 
-namespace DPA_Musicsheets.Builders.Score
+namespace DPA_Musicsheets.Builders.Midi
 {
     public class MidiScoreBuilder : IBuilder<Common.Models.Score>
     {
         private readonly Sequence _sequence;
+        private TimeSignature _currentTimeSignature;
+        private int _previousTicks;
+        private bool _startedNoteIsClosed;
+
+        private List<Symbol> _symbols;
 
         internal class MetaSymbolGroup
         {
@@ -21,14 +26,24 @@ namespace DPA_Musicsheets.Builders.Score
             public SymbolGroup SymbolGroup { get; set; }
         }
 
+        internal struct Duration
+        {
+            public Durations Length;
+            public int Dots;
+        }
+
         public MidiScoreBuilder(Sequence sequence)
         {
             _sequence = sequence;
+            _startedNoteIsClosed = true;
+            _previousTicks = 0;
+            _symbols = new List<Symbol>();
         }
 
         public Common.Models.Score Build()
         {
             var symbolGroups = GetMetadataFromTrack(_sequence[0]);
+
             var score = new Common.Models.Score()
             {
                 Clef = Clefs.Treble
@@ -36,6 +51,7 @@ namespace DPA_Musicsheets.Builders.Score
 
             foreach (var meta in symbolGroups)
             {
+                _previousTicks = meta.Start;
                 meta.SymbolGroup.Symbols = GetSymbolsFromTrack(_sequence[1], _sequence.Division, meta.SymbolGroup.Meter, meta.Start, meta.End);
                 score.SymbolGroups.Add(meta.SymbolGroup);
             }
@@ -45,85 +61,82 @@ namespace DPA_Musicsheets.Builders.Score
 
         private List<Symbol> GetSymbolsFromTrack(Track track, int division, TimeSignature timeSignature, int start, int? end)
         {
-            var symbols = new List<Symbol>();
-            int previousNoteAbsoluteTicks = start;
-            double percentageOfBarReached = 0;
-            bool startedNoteIsClosed = true;
+            _symbols = new List<Symbol>();
+            _startedNoteIsClosed = true;
 
             foreach (var midiEvent in track.Iterator())
             {
                 IMidiMessage midiMessage = midiEvent.MidiMessage;
-                // TODO: Split this switch statements and create separate logic.
-                // We want to split this so that we can expand our functionality later with new keywords for example.
-                // Hint: Command pattern? Strategies? Factory method?
                 if (midiEvent.AbsoluteTicks < start) continue;
-                if (end != null && midiEvent.AbsoluteTicks >= end) return symbols;
+
+                if (end != null && midiEvent.AbsoluteTicks >= end) return _symbols;
 
                 if (midiMessage.MessageType != MessageType.Channel) continue;
-                var channelMessage = midiEvent.MidiMessage as ChannelMessage;
 
-                if (channelMessage?.Command == ChannelCommand.NoteOn)
+                if (midiEvent.MidiMessage is ChannelMessage channelMessage)
                 {
-                    if (channelMessage.Data2 > 0) // Data2 = loudness
+                    if (channelMessage.Command == ChannelCommand.NoteOn)
                     {
-                        // check if there is time between the last note event and this one
-                        var delta = midiEvent.AbsoluteTicks - previousNoteAbsoluteTicks;
-                        if (delta > 0)
-                        {
-                            var rest = new Rest();
-                            SetDuration(rest, timeSignature, previousNoteAbsoluteTicks, midiEvent.AbsoluteTicks,
-                                division, out percentageOfBarReached);
-                            symbols.Add(rest);
-                            previousNoteAbsoluteTicks = midiEvent.AbsoluteTicks;
-                        }
-
-                        // Append the new note.
-                        symbols.Add(GetNoteFromMidiKey(channelMessage.Data1));
-                        startedNoteIsClosed = false;
+                        StartNote(channelMessage, midiEvent.AbsoluteTicks, division);
                     }
-                    else if (!startedNoteIsClosed)
+                    else if (channelMessage.Command == ChannelCommand.NoteOff)
                     {
-                        // Finish the previous note with the length.
-                        double percentageOfBar;
-
-                        SetDuration(symbols[symbols.Count - 1],
-                            timeSignature, previousNoteAbsoluteTicks, midiEvent.AbsoluteTicks, division, out percentageOfBar);
-
-                        previousNoteAbsoluteTicks = midiEvent.AbsoluteTicks;
-
-                        percentageOfBarReached += percentageOfBar;
-                        if (percentageOfBarReached >= 1)
-                        {
-                            percentageOfBarReached -= 1;
-                        }
-
-                        startedNoteIsClosed = true;
+                        CloseNote(_symbols[_symbols.Count - 1], midiEvent.AbsoluteTicks, division);
                     }
-                    else
-                    {
-                        symbols.Add(new Rest { Duration = Durations.Quarter });
-                    }
-                }
-                else if (channelMessage?.Command == ChannelCommand.NoteOff)
-                {
-                    // Finish the previous note with the length.
-                    double percentageOfBar;
-
-                    SetDuration(symbols[symbols.Count - 1],
-                        timeSignature, previousNoteAbsoluteTicks, midiEvent.AbsoluteTicks, division, out percentageOfBar);
-
-                    previousNoteAbsoluteTicks = midiEvent.AbsoluteTicks;
-
-                    percentageOfBarReached += percentageOfBar;
-                    if (percentageOfBarReached >= 1)
-                    {
-                        percentageOfBarReached -= 1;
-                    }
-
-                    startedNoteIsClosed = true;
                 }
             }
-            return symbols;
+
+            return _symbols;
+        }
+
+        private void StartNote(ChannelMessage message, int absoluteTicks, int division)
+        {
+            if (message.Data2 > 0) // Data2 = loudness
+            {
+                // check if there is time between the last note event and this one
+                var delta = absoluteTicks - _previousTicks;
+                if (delta > 0)
+                {
+                    var rest = new Rest();
+                    var duration = GetDuration(_previousTicks, absoluteTicks, division);
+                    if (duration.HasValue)
+                    {
+                        rest.Duration = duration.Value.Length;
+                        rest.Dots = duration.Value.Dots;
+                    }
+                    _symbols.Add(rest);
+                    _previousTicks = absoluteTicks;
+                }
+
+                // Append the new note.
+                _symbols.Add(GetNoteFromMidiKey(message.Data1));
+                _startedNoteIsClosed = false;
+                return;
+            }
+
+            if (!_startedNoteIsClosed)
+            {
+                CloseNote(_symbols[_symbols.Count - 1], absoluteTicks, division);
+                _previousTicks = absoluteTicks;
+                _startedNoteIsClosed = true;
+                return;
+            }
+
+            _symbols.Add(new Rest { Duration = Durations.Quarter });
+        }
+
+        private void CloseNote(Symbol symbol, int absoluteTicks, int division)
+        {
+            var duration = GetDuration(_previousTicks, absoluteTicks, division);
+
+            if (duration.HasValue)
+            {
+                symbol.Duration = duration.Value.Length;
+                symbol.Dots = duration.Value.Dots;
+            }
+
+            _previousTicks = absoluteTicks;
+            _startedNoteIsClosed = true;
         }
 
         private IList<MetaSymbolGroup> GetMetadataFromTrack(Track track)
@@ -142,7 +155,6 @@ namespace DPA_Musicsheets.Builders.Score
                     case MetaType.TimeSignature:
                         if (last != null) last.End = e.AbsoluteTicks;
                         var timeSignatureBytes = metaMessage.GetBytes();
-
                         var beat = 1 / Math.Pow(timeSignatureBytes[1], -2);
 
                         var symbolGroup = new SymbolGroup
@@ -155,9 +167,9 @@ namespace DPA_Musicsheets.Builders.Score
                         };
 
                         var meta = new MetaSymbolGroup { Start = e.AbsoluteTicks, SymbolGroup = symbolGroup };
-
                         symbolGroups.Add(meta);
                         last = meta;
+                        _currentTimeSignature = symbolGroup.Meter;
                         break;
                     case MetaType.Tempo:
                         var tempoBytes = metaMessage.GetBytes();
@@ -165,24 +177,6 @@ namespace DPA_Musicsheets.Builders.Score
                                     (tempoBytes[2] & 0xff);
                         last.SymbolGroup.Tempo = 60000000 / tempo; // bpm
                         break;
-                        //case MetaType.EndOfTrack:
-                        //                            if (previousNoteAbsoluteTicks > 0)
-                        //                            {
-                        //                                // Finish the last notelength.
-                        //                                double percentageOfBar;
-                        //                                lilypondContent.Append(MidiToLilyHelper.GetLilypondNoteLength(
-                        //                                    previousNoteAbsoluteTicks, midiEvent.AbsoluteTicks, division, _beatNote,
-                        //                                    _beatsPerBar, out percentageOfBar));
-                        //                                lilypondContent.Append(" ");
-                        //                        
-                        //                                percentageOfBarReached += percentageOfBar;
-                        //                                if (percentageOfBarReached >= 1)
-                        //                                {
-                        //                                    lilypondContent.AppendLine("|");
-                        //                                    percentageOfBar = percentageOfBar - 1;
-                        //                                }
-                        //                            }
-                        //break;
                 }
             }
 
@@ -251,7 +245,7 @@ namespace DPA_Musicsheets.Builders.Score
             return note;
         }
 
-        private Symbol SetDuration(Symbol symbol, TimeSignature timeSignature, int absoluteTicks, int nextNoteAbsoluteTicks, int division, out double percentageOfBar)
+        private Duration? GetDuration(int absoluteTicks, int nextNoteAbsoluteTicks, int division)
         {
             int duration = 0;
             int dots = 0;
@@ -260,12 +254,11 @@ namespace DPA_Musicsheets.Builders.Score
 
             if (deltaTicks <= 0)
             {
-                percentageOfBar = 0;
-                return symbol;
+                return null;
             }
 
             double percentageOfBeatNote = deltaTicks / division;
-            percentageOfBar = (1.0 / (int)timeSignature.Beat) * percentageOfBeatNote;
+            var percentageOfBar = (1.0 / (int)_currentTimeSignature.Beat) * percentageOfBeatNote;
 
             for (int noteLength = 32; noteLength >= 1; noteLength -= 1)
             {
@@ -304,7 +297,7 @@ namespace DPA_Musicsheets.Builders.Score
 
                     while (currentTime < (noteLength - subtractDuration))
                     {
-                        var addtime = 1 / ((subtractDuration / timeSignature.Ticks) * Math.Pow(2, dots));
+                        var addtime = 1 / ((subtractDuration / _currentTimeSignature.Ticks) * Math.Pow(2, dots));
                         if (addtime <= 0) break;
                         currentTime += addtime;
                         if (currentTime <= (noteLength - subtractDuration))
@@ -318,9 +311,7 @@ namespace DPA_Musicsheets.Builders.Score
                 }
             }
 
-            symbol.Duration = (Durations)duration;
-            symbol.Dots = dots;
-            return symbol;
+            return new Duration { Length = (Durations)duration, Dots = dots };
         }
     }
 }
