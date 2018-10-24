@@ -103,6 +103,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Builders\Midi\ChannelEventHandler.cs" />
+    <Compile Include="Builders\Midi\CloseNoteEvent.cs" />
+    <Compile Include="Builders\Midi\IMidiEvent.cs" />
+    <Compile Include="Builders\Midi\MetaEventHandler.cs" />
     <Compile Include="Builders\Score\LilypondScoreBuilder.cs" />
     <Compile Include="Builders\View\LilypondViewBuilder.cs" />
     <Compile Include="Builders\View\PsamViewBuilder.cs" />
@@ -136,7 +140,7 @@
     <Compile Include="Strategies\LilypondFileStrategy.cs" />
     <Compile Include="Strategies\LilypondLoadStrategy.cs" />
     <Compile Include="Strategies\MidiFileStrategy.cs" />
-    <Compile Include="Builders\Score\MidiScoreBuilder.cs" />
+    <Compile Include="Builders\Midi\MidiScoreBuilder.cs" />
     <Compile Include="Managers\MidiToLilyHelper.cs" />
     <Compile Include="Managers\MusicLoader.cs" />
     <Compile Include="Managers\View\MidiPlayerViewManager.cs" />
