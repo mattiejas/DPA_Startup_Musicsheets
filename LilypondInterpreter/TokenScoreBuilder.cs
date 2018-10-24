@@ -29,7 +29,11 @@ namespace LilypondInterpreter
 
         public TokenScoreBuilder()
         {
+            _lastTimeSignature = new TimeSignature { Beat = Durations.Quarter, Ticks = 4 };
+
             _currentGroup = new SymbolGroup();
+            _currentGroup.Meter = _lastTimeSignature;
+
             _score = new Score { SymbolGroups = { _currentGroup } };
             _relativeOctave = Octaves.Three;
             _previous = new Common.Models.Note(Names.C, _relativeOctave);
