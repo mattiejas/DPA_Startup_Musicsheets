@@ -84,7 +84,7 @@ namespace DPA_Musicsheets.ViewModels
 
         public ICommand LoadCommand => new RelayCommand(() =>
         {
-            _musicLoader.OpenFile(FileName);
+            _musicLoader.Load(FileName);
             _editorContext.SavedState = _editorContext.CurrentEditorContent;
         });
 

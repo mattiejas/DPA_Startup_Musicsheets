@@ -69,12 +69,6 @@ namespace LilypondInterpreter
                 case Keywords.Tempo:
                     SetTempo(keyword.Value);
                     break;
-                case Keywords.Repeat:
-                    // TODO
-                    break;
-                case Keywords.Alternative:
-                    // TODO
-                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

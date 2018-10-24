@@ -20,7 +20,7 @@ namespace DPA_Musicsheets.Commands.Actions
 
         public void Execute()
         {
-            _musicLoader.OpenFile(_fileName);
+            _musicLoader.Load(_fileName);
         }
     }
 }

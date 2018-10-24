@@ -53,9 +53,6 @@ namespace DPA_Musicsheets.ViewModels
                 _sequencer.Stop();
                 _running = false;
             };
-
-            // TODO: Can we use some sort of eventing system so the managers layer doesn't have to know the viewmodel layer?
-            //            musicLoader.MidiPlayerViewModel = this;
         }
 
         private void UpdateButtons()

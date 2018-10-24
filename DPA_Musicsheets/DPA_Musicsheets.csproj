@@ -143,7 +143,6 @@
     <Compile Include="Strategies\LilypondSaveStrategy.cs" />
     <Compile Include="Strategies\MidiFileStrategy.cs" />
     <Compile Include="Builders\Midi\MidiScoreBuilder.cs" />
-    <Compile Include="Managers\MidiToLilyHelper.cs" />
     <Compile Include="Managers\MusicLoader.cs" />
     <Compile Include="Managers\View\MidiPlayerViewManager.cs" />
     <Compile Include="Managers\View\PsamViewManager.cs" />

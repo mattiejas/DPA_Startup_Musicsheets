@@ -20,7 +20,6 @@ namespace LilypondInterpreter
     {
         private readonly TokenScoreBuilder _builder;
 
-        // TODO: IScoreBuilder is useless here, we need the methods from TokenScoreBuilder
         public TokenVisitor(TokenScoreBuilder builder)
         {
             _builder = builder;
